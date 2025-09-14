@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Asif Bank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+          margin: 0;
+          font-family: 'Poppins', sans-serif;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .app-container {
+          background: #fff;
+          width: 460px;
+          border-radius: 20px;
+          padding: 30px;
+          box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
+          text-align: center;
+        }
+        h1 {
+          margin-bottom: 20px;
+          color: #333;
+        }
+        input {
+          width: 90%;
+          padding: 12px;
+          margin: 8px 0;
+          border-radius: 10px;
+          border: 1px solid #ccc;
+          outline: none;
+          transition: all 0.3s;
+        }
+        input:focus {
+          border-color: #667eea;
+          box-shadow: 0 0 8px rgba(102,126,234,0.5);
+        }
+        button {
+          width: 95%;
+          padding: 12px;
+          margin: 10px 0;
+          border: none;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .hidden { display: none; }
+        .card {
+          background: linear-gradient(135deg, #43cea2, #185a9d);
+          color: white;
+          border-radius: 15px;
+          padding: 20px;
+          margin: 20px 0;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .balance { font-size: 28px; font-weight: bold; }
+        .message { margin: 10px 0; color: #ff3d3d; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>💳 Asif Bank</h1>
+
+    <!-- Signup Section -->
+    <div id="signupDiv">
+        <h2>Sign Up</h2>
+        <input type="text" id="signupName" placeholder="Full Name">
+        <input type="text" id="signupMobile" placeholder="Mobile Number">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button onclick="signup()">Sign Up</button>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginDiv">
+        <h2>Login</h2>
+        <input type="text" id="loginMobile" placeholder="Mobile Number">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="hidden">
+        <h2 id="userWelcome">Welcome, User</h2>
+        <div class="card">
+            <p>Your Current Balance</p>
+            <p id="balanceAmount" class="balance">₹0.00</p>
+        </div>
+
+        <h3>Send Money</h3>
+        <input type="text" id="receiverMobile" placeholder="Receiver Mobile Number">
+        <input type="number" id="sendAmount" placeholder="Amount">
+        <button onclick="sendMoney()">Send Money</button>
+
+        <h3>Deposit / Withdraw</h3>
+        <input type="number" id="amount" placeholder="Enter Amount">
+        <button onclick="deposit()">Deposit</button>
+        <button onclick="withdraw()">Withdraw</button>
+
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    let loggedInUser = null;
+    let userName = null;
+
+    async function signup() {
+      const name = document.getElementById("signupName").value;
+      const mobile = document.getElementById("signupMobile").value;
+      const password = document.getElementById("signupPassword").value;
+
+      if (!name || !mobile || !password) {
+        showMessage("Please fill all fields");
+        return;
+      }
+
+      const res = await fetch("/user/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile, password, balance: 0 })
+      });
+
+      const text = await res.text();
+      showMessage(text);
+    }
+
+    async function login() {
+      const mobile = document.getElementById("loginMobile").value;
+      const password = document.getElementById("loginPassword").value;
+
+      if (!mobile || !password) {
+        showMessage("Please enter mobile and password");
+        return;
+      }
+
+      const res = await fetch(`/user/login/${mobile}/${password}`);
+      const text = await res.text();
+
+      if (text.includes("SUCCESSFUL")) {
+        loggedInUser = mobile;
+        userName = text.split(":")[1]?.trim() || mobile;
+
+        document.getElementById("signupDiv").classList.add("hidden");
+        document.getElementById("loginDiv").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+
+        document.getElementById("userWelcome").innerText = `Welcome, ${userName}`;
+        showMessage("Login Successful!");
+        checkBalance();
+      } else {
+        showMessage(text);
+      }
+    }
+
+    async function checkBalance() {
+      if (!loggedInUser) return showMessage("Please login first!");
+      const res = await fetch(`/user/balance/${loggedInUser}`);
+      const text = await res.text();
+      document.getElementById("balanceAmount").innerText = "₹" + text.replace("Balance: ", "");
+    }
+
+    async function deposit() {
+      if (!loggedInUser) return showMessage("Please login first!");
+      const amount = document.getElementById("amount").value;
+      if (!amount || amount <= 0) return showMessage("Enter valid amount");
+
+      const res = await fetch(`/user/deposit/${loggedInUser}/${amount}`);
+      const text = await res.text();
+      showMessage(text);
+      checkBalance();
+    }
+
+    async function withdraw() {
+      if (!loggedInUser) return showMessage("Please login first!");
+      const amount = document.getElementById("amount").value;
+      if (!amount || amount <= 0) return showMessage("Enter valid amount");
+
+      const res = await fetch(`/user/withdraw/${loggedInUser}/${amount}`);
+      const text = await res.text();
+      showMessage(text);
+      checkBalance();
+    }
+
+    async function sendMoney() {
+      if (!loggedInUser) return showMessage("Please login first!");
+
+      const receiverMobile = document.getElementById("receiverMobile").value;
+      const amount = document.getElementById("sendAmount").value;
+
+      if (!receiverMobile || !amount || amount <= 0) return showMessage("Enter valid details");
+
+      const res = await fetch(`/user/send/${loggedInUser}/${receiverMobile}/${amount}`);
+      const text = await res.text();
+      showMessage(text);
+      checkBalance();
+    }
+
+    function logout() {
+      loggedInUser = null;
+      userName = null;
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("signupDiv").classList.remove("hidden");
+      document.getElementById("loginDiv").classList.remove("hidden");
+      showMessage("Logged out successfully!");
+    }
+
+    function showMessage(msg) {
+      document.getElementById("message").innerText = msg;
+    }
+</script>
+</body>
+</html>
