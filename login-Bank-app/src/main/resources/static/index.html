@@ -2,201 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Banking App</title>
+    <title>Bank App</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-          font-family: "Roboto", sans-serif;
-          background: #fafafa;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-        }
-        .app {
-          width: 100%;
-          max-width: 400px;
-          background: #fff;
-          border-radius: 15px;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-          padding: 20px;
-        }
-        h2 {
-          text-align: center;
-          margin-bottom: 20px;
-          color: #333;
-        }
-        label {
-          font-size: 14px;
-          margin: 8px 0 4px;
-          color: #555;
-          display: block;
-        }
-        input {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ccc;
-          border-radius: 10px;
-          margin-bottom: 10px;
-          font-size: 14px;
-        }
-        button {
-          width: 100%;
-          padding: 12px;
-          margin-top: 10px;
-          border: none;
-          border-radius: 10px;
-          background: #0095f6;
-          color: #fff;
-          font-weight: bold;
-          cursor: pointer;
-        }
-        button:hover { background: #007acc; }
-        .switch {
-          text-align: center;
-          margin-top: 15px;
-          font-size: 14px;
-          color: #555;
-          cursor: pointer;
-        }
-        .switch span { color: #0095f6; font-weight: 600; }
-        #dashboard { display: none; margin-top: 20px; }
-        #dashboard button { margin-top: 8px; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 10px; width: 300px; }
+        input, button { margin: 5px 0; padding: 8px; width: 95%; }
+        button { cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #0056b3; }
+        #responseBox { margin-top: 20px; padding: 10px; border: 1px solid green; border-radius: 5px; min-height: 50px; }
     </style>
 </head>
 <body>
-<div class="app">
-    <!-- AUTH SCREENS -->
-    <div id="authPage">
-        <!-- Login -->
-        <div id="loginCard">
-            <h2>Login</h2>
-            <label>Mobile</label>
-            <input type="text" id="loginMobile">
-            <label>Password</label>
-            <input type="password" id="loginPassword">
-            <button onclick="login()">Login</button>
-            <div class="switch">Don’t have an account? <span onclick="showSignup()">Signup</span></div>
-        </div>
 
-        <!-- Signup -->
-        <div id="signupCard" style="display:none;">
-            <h2>Signup</h2>
-            <label>Name</label>
-            <input type="text" id="signupName">
-            <label>Mobile</label>
-            <input type="text" id="signupMobile">
-            <label>Password</label>
-            <input type="password" id="signupPassword">
-            <button onclick="signup()">Signup</button>
-            <div class="switch">Already have an account? <span onclick="showLogin()">Login</span></div>
-        </div>
-    </div>
+<h2>🏦 Bank App</h2>
 
-    <!-- DASHBOARD -->
-    <div id="dashboard">
-        <h2>Dashboard</h2>
-        <button onclick="balance()">Check Balance</button>
-        <button onclick="deposit()">Deposit 100</button>
-        <button onclick="withdraw()">Withdraw 50</button>
-        <button onclick="deleteAccount()">Delete Account</button>
-        <button onclick="logout()">Logout</button>
-    </div>
+<!-- Signup -->
+<div class="box">
+    <h3>Signup</h3>
+    <input type="text" id="signupName" placeholder="Name">
+    <input type="text" id="signupMobile" placeholder="Mobile">
+    <input type="password" id="signupPassword" placeholder="Password">
+    <button onclick="signup()">Signup</button>
 </div>
+
+<!-- Login -->
+<div class="box">
+    <h3>Login</h3>
+    <input type="text" id="loginMobile" placeholder="Mobile">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- Balance -->
+<div class="box">
+    <h3>Check Balance</h3>
+    <button onclick="balance()">Get Balance</button>
+</div>
+
+<!-- Deposit -->
+<div class="box">
+    <h3>Deposit</h3>
+    <input type="number" id="depositAmount" placeholder="Enter amount">
+    <button onclick="deposit()">Deposit</button>
+</div>
+
+<!-- Withdraw -->
+<div class="box">
+    <h3>Withdraw</h3>
+    <input type="number" id="withdrawAmount" placeholder="Enter amount">
+    <button onclick="withdraw()">Withdraw</button>
+</div>
+
+<!-- Response Box -->
+<div id="responseBox">✅ Response will appear here...</div>
 
 <script>
     const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
-    let token = localStorage.getItem("jwtToken");
+    let token = "";
 
-    function toggleAuth(isLoggedIn) {
-      document.getElementById("authPage").style.display = isLoggedIn ? "none" : "block";
-      document.getElementById("dashboard").style.display = isLoggedIn ? "block" : "none";
-    }
-
-    function showSignup() {
-      document.getElementById("loginCard").style.display = "none";
-      document.getElementById("signupCard").style.display = "block";
-    }
-
-    function showLogin() {
-      document.getElementById("signupCard").style.display = "none";
-      document.getElementById("loginCard").style.display = "block";
+    function showResponse(data) {
+      document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
     }
 
     async function signup() {
       const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
-      const res = await fetch(`${BASE_URL}/signup`, {
+
+      const res = await fetch(BASE_URL + "/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, mobile, password })
       });
-      alert(await res.text());
+      showResponse(await res.json());
     }
 
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
-      const res = await fetch(`${BASE_URL}/login`, {
+
+      const res = await fetch(BASE_URL + "/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, password })
       });
-      const data = await res.text();
-      if (data.includes("TOKEN:")) {
-        token = data.split("TOKEN:")[1].trim();
-        localStorage.setItem("jwtToken", token);
-        alert("Login success ✅");
-        toggleAuth(true);
-      } else {
-        alert("Login failed ❌");
-      }
+      token = await res.text();
+      showResponse({ token });
     }
 
     async function balance() {
-      const res = await fetch(`${BASE_URL}/balance`, {
-        headers: { Authorization: "Bearer " + token }
+      const res = await fetch(BASE_URL + "/balance", {
+        method: "GET",
+        headers: { "Authorization": "Bearer " + token }
       });
-      alert(await res.text());
+      showResponse(await res.text());
     }
 
     async function deposit() {
-      const res = await fetch(`${BASE_URL}/deposit/100`, {
+      const amount = document.getElementById("depositAmount").value;
+      const res = await fetch(BASE_URL + "/deposit/" + amount, {
         method: "PUT",
-        headers: { Authorization: "Bearer " + token }
+        headers: { "Authorization": "Bearer " + token }
       });
-      alert(await res.text());
+      showResponse(await res.text());
     }
 
     async function withdraw() {
-      const res = await fetch(`${BASE_URL}/withdraw/50`, {
+      const amount = document.getElementById("withdrawAmount").value;
+      const res = await fetch(BASE_URL + "/withdraw/" + amount, {
         method: "PUT",
-        headers: { Authorization: "Bearer " + token }
+        headers: { "Authorization": "Bearer " + token }
       });
-      alert(await res.text());
+      showResponse(await res.text());
     }
-
-    async function deleteAccount() {
-      const res = await fetch(`${BASE_URL}/delete`, {
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token }
-      });
-      alert(await res.text());
-      localStorage.removeItem("jwtToken");
-      token = null;
-      toggleAuth(false);
-    }
-
-    function logout() {
-      localStorage.removeItem("jwtToken");
-      token = null;
-      toggleAuth(false);
-      alert("Logged out");
-    }
-
-    // init
-    toggleAuth(!!token);
 </script>
 </body>
 </html>
