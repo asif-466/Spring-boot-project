@@ -3,19 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <title>Banking App</title>
-    <script src="config.js"></script> <!-- yaha load hoga -->
     <style>
-        /* ...tumhara existing CSS same rahega... */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: "Roboto", sans-serif;
+          background: #fafafa;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+        .app {
+          width: 100%;
+          max-width: 420px;
+          height: 100%;
+          max-height: 720px;
+          background: #fff;
+          border-radius: 20px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
+        header {
+          padding: 15px;
+          text-align: center;
+          font-weight: bold;
+          border-bottom: 1px solid #eee;
+          color: #333;
+        }
+
+        /* AUTH SCREEN */
+        #authPage {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 20px;
+        }
+        .card {
+          background: #fff;
+          border: 1px solid #ddd;
+          padding: 20px;
+          border-radius: 15px;
+        }
+        h2 {
+          text-align: center;
+          margin-bottom: 20px;
+          color: #444;
+        }
+        label {
+          font-size: 14px;
+          margin: 8px 0 4px;
+          color: #555;
+        }
+        input {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          margin-bottom: 10px;
+          font-size: 14px;
+        }
+        button {
+          width: 100%;
+          padding: 12px;
+          margin-top: 10px;
+          border: none;
+          border-radius: 10px;
+          background: #0095f6;
+          color: #fff;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        button:hover { background: #007acc; }
+
+        /* DASHBOARD */
+        #dashboard {
+          flex: 1;
+          display: none;
+          flex-direction: column;
+        }
+        .page {
+          flex: 1;
+          padding: 20px;
+          display: none;
+        }
+        .page.active { display: block; }
+
+        /* NAVIGATION */
+        nav {
+          height: 60px;
+          display: flex;
+          border-top: 1px solid #eee;
+        }
+        nav button {
+          flex: 1;
+          border: none;
+          background: none;
+          font-size: 14px;
+          color: #555;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        nav button.active { color: #0095f6; }
+
+        /* RESPONSE BOX */
+        pre {
+          background: #111;
+          color: #0f0;
+          padding: 10px;
+          border-radius: 10px;
+          height: 200px;
+          overflow-y: auto;
+          font-size: 12px;
+        }
+
+        /* SWITCH LINKS */
+        .switch {
+          text-align: center;
+          margin-top: 15px;
+          font-size: 14px;
+          color: #555;
+          cursor: pointer;
+        }
+        .switch span { color: #0095f6; font-weight: 600; }
     </style>
+
+    <!-- Config must load first -->
+    <script src="config.js"></script>
 </head>
 <body>
 <div class="app">
-    <!-- tumhara pura auth + dashboard ka HTML same -->
+    <header>💳 Banking</header>
+
+    <!-- AUTH SCREEN -->
+    <div id="authPage">
+        <div class="card" id="loginCard">
+            <h2>Login</h2>
+            <label>Mobile</label>
+            <input type="text" id="loginMobile">
+            <label>Password</label>
+            <input type="password" id="loginPassword">
+            <button onclick="login()">Login</button>
+            <div class="switch">Don’t have an account? <span onclick="showSignup()">Signup</span></div>
+        </div>
+
+        <div class="card" id="signupCard" style="display:none;">
+            <h2>Signup</h2>
+            <label>Name</label>
+            <input type="text" id="signupName">
+            <label>Mobile</label>
+            <input type="text" id="signupMobile">
+            <label>Password</label>
+            <input type="password" id="signupPassword">
+            <button onclick="signup()">Signup</button>
+            <div class="switch">Already have an account? <span onclick="showLogin()">Login</span></div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+        <div id="homePage" class="page active">
+            <h2>Home</h2>
+            <button onclick="balance()">Check Balance</button>
+            <button onclick="deposit()">Deposit 100</button>
+            <button onclick="withdraw()">Withdraw 50</button>
+            <button onclick="send()">Send 20</button>
+        </div>
+
+        <div id="transactionPage" class="page">
+            <h2>Transactions</h2>
+            <button onclick="richUser()">Rich Users</button>
+            <button onclick="poorUser()">Poor Users</button>
+        </div>
+
+        <div id="profilePage" class="page">
+            <h2>Profile</h2>
+            <button onclick="deleteAccount()">Delete Account</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <div class="page">
+            <h2>Response</h2>
+            <pre id="output">Waiting...</pre>
+        </div>
+
+        <!-- Bottom Nav -->
+        <nav>
+            <button class="active" onclick="showPage('homePage', this)">Home</button>
+            <button onclick="showPage('transactionPage', this)">Transactions</button>
+            <button onclick="showPage('profilePage', this)">Profile</button>
+        </nav>
+    </div>
 </div>
 
 <script>
-    // Ab baseUrl config.js se aa raha hai
-    const baseUrl = BASE_URL;
     let token = localStorage.getItem("jwtToken");
 
     function showOutput(data) {
@@ -49,7 +233,7 @@
       const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
-      const res = await fetch(`${baseUrl}/signup`, {
+      const res = await fetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, mobile, password })
@@ -60,7 +244,7 @@
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
-      const res = await fetch(`${baseUrl}/login`, {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, password })
@@ -75,14 +259,14 @@
     }
 
     async function balance() {
-      const res = await fetch(`${baseUrl}/balance`, {
+      const res = await fetch(`${BASE_URL}/balance`, {
         headers: { Authorization: "Bearer " + token }
       });
       showOutput(await res.text());
     }
 
     async function deposit() {
-      const res = await fetch(`${baseUrl}/deposit/100`, {
+      const res = await fetch(`${BASE_URL}/deposit/100`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
@@ -90,7 +274,7 @@
     }
 
     async function withdraw() {
-      const res = await fetch(`${baseUrl}/withdraw/50`, {
+      const res = await fetch(`${BASE_URL}/withdraw/50`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
@@ -98,7 +282,7 @@
     }
 
     async function send() {
-      const res = await fetch(`${baseUrl}/send/9999999999/20`, {
+      const res = await fetch(`${BASE_URL}/send/9999999999/20`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
@@ -106,17 +290,17 @@
     }
 
     async function richUser() {
-      const res = await fetch(`${baseUrl}/richUser`);
+      const res = await fetch(`${BASE_URL}/richUser`);
       showOutput(await res.json());
     }
 
     async function poorUser() {
-      const res = await fetch(`${baseUrl}/poorUser`);
+      const res = await fetch(`${BASE_URL}/poorUser`);
       showOutput(await res.json());
     }
 
     async function deleteAccount() {
-      const res = await fetch(`${baseUrl}/delete`, {
+      const res = await fetch(`${BASE_URL}/delete`, {
         method: "DELETE",
         headers: { Authorization: "Bearer " + token }
       });
