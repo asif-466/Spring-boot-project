@@ -3,3 +3,4 @@ services:
     name: spring-boot-app
     runtime: docker
     plan: free
+
