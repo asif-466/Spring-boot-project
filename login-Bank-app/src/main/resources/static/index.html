@@ -2,102 +2,235 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login App Frontend</title>
+    <title>Banking App</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f2f2f2; }
-        h2 { color: #333; }
-        .section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { margin: 5px; padding: 8px; }
-        button { padding: 8px 12px; margin-top: 5px; cursor: pointer; }
-        pre { background: #222; color: #0f0; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: "Roboto", sans-serif;
+          background: #fafafa;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+        .app {
+          width: 100%;
+          max-width: 420px;
+          height: 100%;
+          max-height: 720px;
+          background: #fff;
+          border-radius: 20px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
+        header {
+          padding: 15px;
+          text-align: center;
+          font-weight: bold;
+          border-bottom: 1px solid #eee;
+          color: #333;
+        }
+
+        /* AUTH SCREEN */
+        #authPage {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 20px;
+        }
+        .card {
+          background: #fff;
+          border: 1px solid #ddd;
+          padding: 20px;
+          border-radius: 15px;
+        }
+        h2 {
+          text-align: center;
+          margin-bottom: 20px;
+          color: #444;
+        }
+        label {
+          font-size: 14px;
+          margin: 8px 0 4px;
+          color: #555;
+        }
+        input {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          margin-bottom: 10px;
+          font-size: 14px;
+        }
+        button {
+          width: 100%;
+          padding: 12px;
+          margin-top: 10px;
+          border: none;
+          border-radius: 10px;
+          background: #0095f6;
+          color: #fff;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        button:hover { background: #007acc; }
+
+        /* DASHBOARD */
+        #dashboard {
+          flex: 1;
+          display: none;
+          flex-direction: column;
+        }
+        .page {
+          flex: 1;
+          padding: 20px;
+          display: none;
+        }
+        .page.active { display: block; }
+
+        /* NAVIGATION */
+        nav {
+          height: 60px;
+          display: flex;
+          border-top: 1px solid #eee;
+        }
+        nav button {
+          flex: 1;
+          border: none;
+          background: none;
+          font-size: 14px;
+          color: #555;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        nav button.active { color: #0095f6; }
+
+        /* RESPONSE BOX */
+        pre {
+          background: #111;
+          color: #0f0;
+          padding: 10px;
+          border-radius: 10px;
+          height: 200px;
+          overflow-y: auto;
+          font-size: 12px;
+        }
+
+        /* SWITCH LINKS */
+        .switch {
+          text-align: center;
+          margin-top: 15px;
+          font-size: 14px;
+          color: #555;
+          cursor: pointer;
+        }
+        .switch span { color: #0095f6; font-weight: 600; }
     </style>
 </head>
 <body>
-<h1>Login App - API Frontend</h1>
+<div class="app">
+    <header>💳 Banking</header>
 
-<!-- Signup -->
-<div class="section">
-    <h2>Signup</h2>
-    <input type="text" id="signupName" placeholder="Name">
-    <input type="text" id="signupMobile" placeholder="Mobile (10 digits)">
-    <input type="password" id="signupPassword" placeholder="Password">
-    <button onclick="signup()">Signup</button>
-</div>
+    <!-- AUTH SCREEN -->
+    <div id="authPage">
+        <div class="card" id="loginCard">
+            <h2>Login</h2>
+            <label>Mobile</label>
+            <input type="text" id="loginMobile">
+            <label>Password</label>
+            <input type="password" id="loginPassword">
+            <button onclick="login()">Login</button>
+            <div class="switch">Don’t have an account? <span onclick="showSignup()">Signup</span></div>
+        </div>
 
-<!-- Login -->
-<div class="section">
-    <h2>Login</h2>
-    <input type="text" id="loginMobile" placeholder="Mobile">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
-</div>
+        <div class="card" id="signupCard" style="display:none;">
+            <h2>Signup</h2>
+            <label>Name</label>
+            <input type="text" id="signupName">
+            <label>Mobile</label>
+            <input type="text" id="signupMobile">
+            <label>Password</label>
+            <input type="password" id="signupPassword">
+            <button onclick="signup()">Signup</button>
+            <div class="switch">Already have an account? <span onclick="showLogin()">Login</span></div>
+        </div>
+    </div>
 
-<!-- Balance -->
-<div class="section">
-    <h2>Balance</h2>
-    <button onclick="balance()">Check Balance</button>
-</div>
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+        <div id="homePage" class="page active">
+            <h2>Home</h2>
+            <button onclick="balance()">Check Balance</button>
+            <button onclick="deposit()">Deposit 100</button>
+            <button onclick="withdraw()">Withdraw 50</button>
+            <button onclick="send()">Send 20</button>
+        </div>
 
-<!-- Deposit -->
-<div class="section">
-    <h2>Deposit</h2>
-    <input type="number" id="depositAmount" placeholder="Amount">
-    <button onclick="deposit()">Deposit</button>
-</div>
+        <div id="transactionPage" class="page">
+            <h2>Transactions</h2>
+            <button onclick="richUser()">Rich Users</button>
+            <button onclick="poorUser()">Poor Users</button>
+        </div>
 
-<!-- Withdraw -->
-<div class="section">
-    <h2>Withdraw</h2>
-    <input type="number" id="withdrawAmount" placeholder="Amount">
-    <button onclick="withdraw()">Withdraw</button>
-</div>
+        <div id="profilePage" class="page">
+            <h2>Profile</h2>
+            <button onclick="deleteAccount()">Delete Account</button>
+            <button onclick="logout()">Logout</button>
+        </div>
 
-<!-- Send Money -->
-<div class="section">
-    <h2>Send Money</h2>
-    <input type="text" id="receiverMobile" placeholder="Receiver Mobile">
-    <input type="number" id="sendAmount" placeholder="Amount">
-    <button onclick="send()">Send</button>
-</div>
+        <div class="page">
+            <h2>Response</h2>
+            <pre id="output">Waiting...</pre>
+        </div>
 
-<!-- Delete -->
-<div class="section">
-    <h2>Delete Account</h2>
-    <button onclick="deleteAccount()">Delete</button>
-</div>
-
-<!-- Rich Users -->
-<div class="section">
-    <h2>Rich Users (balance ≥ 500)</h2>
-    <button onclick="richUser()">Get Rich Users</button>
-</div>
-
-<!-- Poor Users -->
-<div class="section">
-    <h2>Poor Users (balance ≤ 500)</h2>
-    <button onclick="poorUser()">Get Poor Users</button>
-</div>
-
-<!-- Output -->
-<div class="section">
-    <h2>Response</h2>
-    <pre id="output"></pre>
+        <!-- Bottom Nav -->
+        <nav>
+            <button class="active" onclick="showPage('homePage', this)">Home</button>
+            <button onclick="showPage('transactionPage', this)">Transactions</button>
+            <button onclick="showPage('profilePage', this)">Profile</button>
+        </nav>
+    </div>
 </div>
 
 <script>
     const baseUrl = "http://localhost:8585/Bank";
-    let token = null;
+    let token = localStorage.getItem("jwtToken");
 
     function showOutput(data) {
       document.getElementById("output").textContent =
         typeof data === "string" ? data : JSON.stringify(data, null, 2);
     }
 
+    function toggleAuth(isLoggedIn) {
+      document.getElementById("authPage").style.display = isLoggedIn ? "none" : "flex";
+      document.getElementById("dashboard").style.display = isLoggedIn ? "flex" : "none";
+    }
+
+    function showPage(id, btn) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    function showSignup() {
+      document.getElementById("loginCard").style.display = "none";
+      document.getElementById("signupCard").style.display = "block";
+    }
+
+    function showLogin() {
+      document.getElementById("signupCard").style.display = "none";
+      document.getElementById("loginCard").style.display = "block";
+    }
+
     async function signup() {
       const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
-
       const res = await fetch(`${baseUrl}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,7 +242,6 @@
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
-
       const res = await fetch(`${baseUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,11 +252,11 @@
       if (data.includes("TOKEN:")) {
         token = data.split("TOKEN:")[1].trim();
         localStorage.setItem("jwtToken", token);
+        toggleAuth(true);
       }
     }
 
     async function balance() {
-      token = localStorage.getItem("jwtToken");
       const res = await fetch(`${baseUrl}/balance`, {
         headers: { Authorization: "Bearer " + token }
       });
@@ -132,9 +264,7 @@
     }
 
     async function deposit() {
-      token = localStorage.getItem("jwtToken");
-      const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(`${baseUrl}/deposit/${amount}`, {
+      const res = await fetch(`${baseUrl}/deposit/100`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
@@ -142,9 +272,7 @@
     }
 
     async function withdraw() {
-      token = localStorage.getItem("jwtToken");
-      const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(`${baseUrl}/withdraw/${amount}`, {
+      const res = await fetch(`${baseUrl}/withdraw/50`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
@@ -152,24 +280,11 @@
     }
 
     async function send() {
-      token = localStorage.getItem("jwtToken");
-      const receiver = document.getElementById("receiverMobile").value;
-      const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(`${baseUrl}/send/${receiver}/${amount}`, {
+      const res = await fetch(`${baseUrl}/send/9999999999/20`, {
         method: "PUT",
         headers: { Authorization: "Bearer " + token }
       });
       showOutput(await res.text());
-    }
-
-    async function deleteAccount() {
-      token = localStorage.getItem("jwtToken");
-      const res = await fetch(`${baseUrl}/delete`, {
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token }
-      });
-      showOutput(await res.text());
-      localStorage.removeItem("jwtToken");
     }
 
     async function richUser() {
@@ -181,6 +296,26 @@
       const res = await fetch(`${baseUrl}/poorUser`);
       showOutput(await res.json());
     }
+
+    async function deleteAccount() {
+      const res = await fetch(`${baseUrl}/delete`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
+      localStorage.removeItem("jwtToken");
+      token = null;
+      toggleAuth(false);
+    }
+
+    function logout() {
+      localStorage.removeItem("jwtToken");
+      token = null;
+      toggleAuth(false);
+    }
+
+    // init
+    toggleAuth(!!token);
 </script>
 </body>
 </html>
