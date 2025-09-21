@@ -2,224 +2,184 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Asif Bank</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>Login App Frontend</title>
     <style>
-        body {
-          margin: 0;
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          height: 100vh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .app-container {
-          background: #fff;
-          width: 460px;
-          border-radius: 20px;
-          padding: 30px;
-          box-shadow: 0px 10px 25px rgba(0,0,0,0.3);
-          text-align: center;
-        }
-        h1 {
-          margin-bottom: 20px;
-          color: #333;
-        }
-        input {
-          width: 90%;
-          padding: 12px;
-          margin: 8px 0;
-          border-radius: 10px;
-          border: 1px solid #ccc;
-          outline: none;
-          transition: all 0.3s;
-        }
-        input:focus {
-          border-color: #667eea;
-          box-shadow: 0 0 8px rgba(102,126,234,0.5);
-        }
-        button {
-          width: 95%;
-          padding: 12px;
-          margin: 10px 0;
-          border: none;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          color: white;
-          font-size: 16px;
-          cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
-        }
-        button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .hidden { display: none; }
-        .card {
-          background: linear-gradient(135deg, #43cea2, #185a9d);
-          color: white;
-          border-radius: 15px;
-          padding: 20px;
-          margin: 20px 0;
-          box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        .balance { font-size: 28px; font-weight: bold; }
-        .message { margin: 10px 0; color: #ff3d3d; font-weight: 600; }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f2f2f2; }
+        h2 { color: #333; }
+        .section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { margin: 5px; padding: 8px; }
+        button { padding: 8px 12px; margin-top: 5px; cursor: pointer; }
+        pre { background: #222; color: #0f0; padding: 10px; border-radius: 5px; overflow-x: auto; }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <h1>💳 Asif Bank</h1>
+<h1>Login App - API Frontend</h1>
 
-    <!-- Signup Section -->
-    <div id="signupDiv">
-        <h2>Sign Up</h2>
-        <input type="text" id="signupName" placeholder="Full Name">
-        <input type="text" id="signupMobile" placeholder="Mobile Number">
-        <input type="password" id="signupPassword" placeholder="Password">
-        <button onclick="signup()">Sign Up</button>
-    </div>
+<!-- Signup -->
+<div class="section">
+    <h2>Signup</h2>
+    <input type="text" id="signupName" placeholder="Name">
+    <input type="text" id="signupMobile" placeholder="Mobile (10 digits)">
+    <input type="password" id="signupPassword" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+</div>
 
-    <!-- Login Section -->
-    <div id="loginDiv">
-        <h2>Login</h2>
-        <input type="text" id="loginMobile" placeholder="Mobile Number">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button onclick="login()">Login</button>
-    </div>
+<!-- Login -->
+<div class="section">
+    <h2>Login</h2>
+    <input type="text" id="loginMobile" placeholder="Mobile">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
 
-    <!-- Dashboard Section -->
-    <div id="dashboard" class="hidden">
-        <h2 id="userWelcome">Welcome, User</h2>
-        <div class="card">
-            <p>Your Current Balance</p>
-            <p id="balanceAmount" class="balance">₹0.00</p>
-        </div>
+<!-- Balance -->
+<div class="section">
+    <h2>Balance</h2>
+    <button onclick="balance()">Check Balance</button>
+</div>
 
-        <h3>Send Money</h3>
-        <input type="text" id="receiverMobile" placeholder="Receiver Mobile Number">
-        <input type="number" id="sendAmount" placeholder="Amount">
-        <button onclick="sendMoney()">Send Money</button>
+<!-- Deposit -->
+<div class="section">
+    <h2>Deposit</h2>
+    <input type="number" id="depositAmount" placeholder="Amount">
+    <button onclick="deposit()">Deposit</button>
+</div>
 
-        <h3>Deposit / Withdraw</h3>
-        <input type="number" id="amount" placeholder="Enter Amount">
-        <button onclick="deposit()">Deposit</button>
-        <button onclick="withdraw()">Withdraw</button>
+<!-- Withdraw -->
+<div class="section">
+    <h2>Withdraw</h2>
+    <input type="number" id="withdrawAmount" placeholder="Amount">
+    <button onclick="withdraw()">Withdraw</button>
+</div>
 
-        <button onclick="logout()">Logout</button>
-    </div>
+<!-- Send Money -->
+<div class="section">
+    <h2>Send Money</h2>
+    <input type="text" id="receiverMobile" placeholder="Receiver Mobile">
+    <input type="number" id="sendAmount" placeholder="Amount">
+    <button onclick="send()">Send</button>
+</div>
 
-    <div id="message" class="message"></div>
+<!-- Delete -->
+<div class="section">
+    <h2>Delete Account</h2>
+    <button onclick="deleteAccount()">Delete</button>
+</div>
+
+<!-- Rich Users -->
+<div class="section">
+    <h2>Rich Users (balance ≥ 500)</h2>
+    <button onclick="richUser()">Get Rich Users</button>
+</div>
+
+<!-- Poor Users -->
+<div class="section">
+    <h2>Poor Users (balance ≤ 500)</h2>
+    <button onclick="poorUser()">Get Poor Users</button>
+</div>
+
+<!-- Output -->
+<div class="section">
+    <h2>Response</h2>
+    <pre id="output"></pre>
 </div>
 
 <script>
-    let loggedInUser = null;
-    let userName = null;
+    const baseUrl = "http://localhost:8585/Bank";
+    let token = null;
+
+    function showOutput(data) {
+      document.getElementById("output").textContent =
+        typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
 
     async function signup() {
       const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
 
-      if (!name || !mobile || !password) {
-        showMessage("Please fill all fields");
-        return;
-      }
-
-      const res = await fetch("/user/signup", {
+      const res = await fetch(`${baseUrl}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, mobile, password, balance: 0 })
+        body: JSON.stringify({ name, mobile, password })
       });
-
-      const text = await res.text();
-      showMessage(text);
+      showOutput(await res.json());
     }
 
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
 
-      if (!mobile || !password) {
-        showMessage("Please enter mobile and password");
-        return;
-      }
-
-      const res = await fetch(`/user/login/${mobile}/${password}`);
-      const text = await res.text();
-
-      if (text.includes("SUCCESSFUL")) {
-        loggedInUser = mobile;
-        userName = text.split(":")[1]?.trim() || mobile;
-
-        document.getElementById("signupDiv").classList.add("hidden");
-        document.getElementById("loginDiv").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-
-        document.getElementById("userWelcome").innerText = `Welcome, ${userName}`;
-        showMessage("Login Successful!");
-        checkBalance();
-      } else {
-        showMessage(text);
+      const res = await fetch(`${baseUrl}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
+      const data = await res.text();
+      showOutput(data);
+      if (data.includes("TOKEN:")) {
+        token = data.split("TOKEN:")[1].trim();
+        localStorage.setItem("jwtToken", token);
       }
     }
 
-    async function checkBalance() {
-      if (!loggedInUser) return showMessage("Please login first!");
-      const res = await fetch(`/user/balance/${loggedInUser}`);
-      const text = await res.text();
-      document.getElementById("balanceAmount").innerText = "₹" + text.replace("Balance: ", "");
+    async function balance() {
+      token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${baseUrl}/balance`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
     }
 
     async function deposit() {
-      if (!loggedInUser) return showMessage("Please login first!");
-      const amount = document.getElementById("amount").value;
-      if (!amount || amount <= 0) return showMessage("Enter valid amount");
-
-      const res = await fetch(`/user/deposit/${loggedInUser}/${amount}`);
-      const text = await res.text();
-      showMessage(text);
-      checkBalance();
+      token = localStorage.getItem("jwtToken");
+      const amount = document.getElementById("depositAmount").value;
+      const res = await fetch(`${baseUrl}/deposit/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
     }
 
     async function withdraw() {
-      if (!loggedInUser) return showMessage("Please login first!");
-      const amount = document.getElementById("amount").value;
-      if (!amount || amount <= 0) return showMessage("Enter valid amount");
-
-      const res = await fetch(`/user/withdraw/${loggedInUser}/${amount}`);
-      const text = await res.text();
-      showMessage(text);
-      checkBalance();
+      token = localStorage.getItem("jwtToken");
+      const amount = document.getElementById("withdrawAmount").value;
+      const res = await fetch(`${baseUrl}/withdraw/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
     }
 
-    async function sendMoney() {
-      if (!loggedInUser) return showMessage("Please login first!");
-
-      const receiverMobile = document.getElementById("receiverMobile").value;
+    async function send() {
+      token = localStorage.getItem("jwtToken");
+      const receiver = document.getElementById("receiverMobile").value;
       const amount = document.getElementById("sendAmount").value;
-
-      if (!receiverMobile || !amount || amount <= 0) return showMessage("Enter valid details");
-
-      const res = await fetch(`/user/send/${loggedInUser}/${receiverMobile}/${amount}`);
-      const text = await res.text();
-      showMessage(text);
-      checkBalance();
+      const res = await fetch(`${baseUrl}/send/${receiver}/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
     }
 
-    function logout() {
-      loggedInUser = null;
-      userName = null;
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("signupDiv").classList.remove("hidden");
-      document.getElementById("loginDiv").classList.remove("hidden");
-      showMessage("Logged out successfully!");
+    async function deleteAccount() {
+      token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${baseUrl}/delete`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showOutput(await res.text());
+      localStorage.removeItem("jwtToken");
     }
 
-    function showMessage(msg) {
-      document.getElementById("message").innerText = msg;
+    async function richUser() {
+      const res = await fetch(`${baseUrl}/richUser`);
+      showOutput(await res.json());
+    }
+
+    async function poorUser() {
+      const res = await fetch(`${baseUrl}/poorUser`);
+      showOutput(await res.json());
     }
 </script>
 </body>

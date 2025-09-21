@@ -1,9 +1,13 @@
 package com.example.login_app;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 
 @Entity
+@Table(name="user_table")
 public class UserTable {
     @Id
     private String mobile;
@@ -19,6 +23,9 @@ public class UserTable {
         this.mobile = mobile;
         this.password = password;
         this.balance=balance;
+    }
+    public UserTable(String name) {
+        this.name=name;
     }
 
     public String getMobile() {

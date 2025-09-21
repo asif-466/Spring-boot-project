@@ -1,89 +1,144 @@
 package com.example.login_app;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class LoginApp {
-    private final Reposit repo;
+    @Autowired
+    public Reposit repo;
 
     @Autowired
-    public LoginApp(Reposit repo) {
-        this.repo = repo;
-    }
+    public JwtUtil jwtUtil;
 
-    public String signup(UserTable userTable) {
-        if (userTable.getMobile() == null || userTable.getMobile().length() != 10) {
-            return "Invalid Mobile Number";
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    public DtoSignupRequest signup(UserTable obj) {
+        if (obj.getMobile() == null || obj.getMobile().length() != 10) {
+            throw new RuntimeException("INVALID NUMBER");
         }
-        if (repo.findByMobile(userTable.getMobile()) != null) {
-            return "User already registered!";
+        if (repo.findById(obj.getMobile()).isPresent()) {
+            throw new RuntimeException("USER ALREADY REGISTERED");
         }
-        userTable.setBalance(0.0);
-        repo.save(userTable);
-        return "Signup Successfully " + userTable.getName();
+        obj.setBalance(0.0);
+        obj.setPassword(passwordEncoder.encode(obj.getPassword()));
+        repo.save(obj);
+        return new DtoSignupRequest(obj.getName(),obj.getMobile(),obj.getBalance());
+
     }
 
     public String login(String mobile, String password) {
-        UserTable userTable = repo.findByMobile(mobile);
-        if (userTable == null) {
-            return "User Not Found";
+        UserTable user = repo.findById(mobile).orElse(null);
+        if (user == null) {
+            return "INVALID MOBILE NUMBER";
         }
-        if (userTable.getPassword().equals(password)) {
-            return "LOGIN SUCCESSFUL: " + userTable.getName();
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return "INVALID PASSWORD ";
+        }
+        String token = jwtUtil.generateToken(mobile);
+        return "Login Successful! TOKEN: " + token;
+
+    }
+
+    public String balance(String token) {
+        if(!jwtUtil.validateToken(token)){
+            return "INVALID OR EXPIRE TOKEN";
+        }
+        String mobile = jwtUtil.extractMobile(token);
+        Double balance = repo.balance(mobile);
+        return "BALANCE: " + balance;
+    }
+
+
+    @Transactional
+    public String deposit(String token, double amount) {
+        if(!jwtUtil.validateToken(token)){
+            return "INVALID OR EXPIRE TOKEN";
+        }
+        String mobile = jwtUtil.extractMobile(token);
+        int row = repo.deposit(mobile, amount);
+        if (row > 0) {
+            Double balance = repo.balance(mobile);
+            return "Deposited: " + amount + " | New Balance: " + balance;
         } else {
-            return "INVALID PASSWORD:";
-        }
-    }
-
-    public String balance(String mobile) {
-        UserTable userTable = repo.findByMobile(mobile);
-        if (userTable == null) {
             return "user not found";
         }
-        return "Balance: " + userTable.getBalance();
+
     }
 
-    public String deposit(String mobile, double amount) {
-        UserTable userTable = repo.findByMobile(mobile);
-        if (userTable == null) {
+
+    @Transactional
+    public String withdraw(String token, double amount) {
+        if(!jwtUtil.validateToken(token)){
+            return "INVALID OR EXPIRE TOKEN";
+        }
+        String mobile = jwtUtil.extractMobile(token);
+        Double balance = repo.balance(mobile);
+        if (balance == null) {
             return "user not found";
         }
-        double bal = userTable.getBalance() + amount;
-        userTable.setBalance(bal);
-        repo.save(userTable);
-        return "Deposited: " + amount + " | New Balance: " + bal;
+        if (amount > balance) {
+            return "low balance! Available  " + balance;
+        }
+        int row = repo.withdraw(mobile, amount);
+        if (row > 0) {
+            Double new_balance = repo.balance(mobile);
+            return "Withdrawal: " + amount + " | New Balance: " + new_balance;
+        } else {
+            return "withdrawal failed";
+        }
     }
 
-    public String withdraw(String mobile, double amount) {
-        UserTable userTable = repo.findByMobile(mobile);
-        if (userTable == null) {
+    @Transactional
+    public String send(String token, String receiverMobile, double amount) {
+        if(!jwtUtil.validateToken(token)){
+            return "INVALID OR EXPIRE TOKEN";
+        }
+        String senderMobile = jwtUtil.extractMobile(token);
+        Double senderbalance = repo.balance(senderMobile);
+        Double receverBalance = repo.balance(receiverMobile);
+        if (senderbalance == null || receverBalance == null) {
             return "user not found";
         }
-        double bal = userTable.getBalance();
-        if (bal < amount) {
-            return "low balance";
+        if (amount > senderbalance) {
+            return "low balance!Available" + senderbalance;
         }
-        bal -= amount;
-        userTable.setBalance(bal);
-        repo.save(userTable);
-        return "Withdrawn: " + amount + " | New Balance: " + bal;
+        repo.withdraw(senderMobile, amount);
+        repo.deposit(receiverMobile, amount);
+
+        Double newsenderbalance = repo.balance(senderMobile);
+        Double newreceverbalance = repo.balance(receiverMobile);
+
+        String sendername = repo.name(senderMobile);
+        String recevername = repo.name(receiverMobile);
+
+        return "sent " + amount + " from " + sendername + " to " + recevername;
     }
 
-    public String send(String senderMobile, String receiverMobile, double amount) {
-        UserTable sender = repo.findByMobile(senderMobile);
-        UserTable receiver = repo.findByMobile(receiverMobile);
-
-        if (sender == null || receiver == null) return "User Not Found!";
-        if (sender.getBalance() < amount) return "low Balance!";
-
-        sender.setBalance(sender.getBalance() - amount);
-        repo.save(sender);
-
-        receiver.setBalance(receiver.getBalance() + amount);
-        repo.save(receiver);
-
-        return "Sent " + amount + " to " + receiver.getName();
+    public String delete(String token) {
+        if(!jwtUtil.validateToken(token)){
+            return "INVALID OR EXPIRE TOKEN";
+        }
+        String mobile = jwtUtil.extractMobile(token);
+        UserTable obj = repo.findById(mobile).orElse(null);
+        if (obj == null) {
+            return "user not found";
+        } else {
+            repo.delete(obj);
+            return "user deleted " + obj.getName();
+        }
     }
 
+    public List<UserTable> richUser() {
+        return repo.richUser();
+    }
+
+    public List<UserTable> poorUser() {
+        return repo.poorUser();
+    }
 }

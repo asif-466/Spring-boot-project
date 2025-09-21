@@ -3,45 +3,62 @@ package com.example.login_app;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*")
+import java.util.List;
+
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/Bank")
 public class Controller {
 
-    public LoginApp loginApp;
-
     @Autowired
-    public Controller(LoginApp loginApp) {
-        this.loginApp = loginApp;
-    }
+    public LoginApp service;
 
     @PostMapping("/signup")
-    public String signup(@RequestBody UserTable userTable) {
-        return loginApp.signup(userTable);
+    public DtoSignupRequest signup(@RequestBody UserTable obj) {
+        return service.signup(obj);
     }
 
-    @GetMapping("/login/{mobile}/{password}")
-    public String login(@PathVariable String mobile, @PathVariable String password) {
-        return loginApp.login(mobile, password);
+    @PostMapping("/login")
+    public String login(@RequestBody DtoLoginRequest request) {
+        return service.login(request.mobile, request.password);
     }
 
-    @GetMapping("/balance/{mobile}")
-    public String balance(@PathVariable String mobile) {
-        return loginApp.balance(mobile);
+    @GetMapping("/balance")
+    public String balance(@RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "");
+        return service.balance(token);
     }
 
-    @GetMapping("/deposit/{mobile}/{amount}")
-    public String deposit(@PathVariable String mobile, @PathVariable double amount) {
-        return loginApp.deposit(mobile, amount);
+    @PutMapping("/deposit/{amount}")
+    public String deposit(@RequestHeader("Authorization") String token, @PathVariable double amount) {
+        token = token.replace("Bearer ", "");
+        return service.deposit(token, amount);
     }
 
-    @GetMapping("/withdraw/{mobile}/{amount}")
-    public String withdraw(@PathVariable String mobile, @PathVariable double amount) {
-        return loginApp.withdraw(mobile, amount);
-    }
-    @GetMapping("/send/{sender}/{receiver}/{amount}")
-    public String sendMoney(@PathVariable String sender,@PathVariable String receiver,@PathVariable double amount) {
-        return loginApp.send(sender, receiver, amount);
+    @PutMapping("/withdraw/{amount}")
+    public String withdraw(@RequestHeader("Authorization") String token, @PathVariable double amount) {
+        token = token.replace("Bearer ", "");
+        return service.withdraw(token, amount);
     }
 
+    @PutMapping("/send/{receiver}/{amount}")
+    public String sendMoney(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
+        token = token.replace("Bearer ", "");
+        return service.send(token, receiver, amount);
+    }
+
+    @DeleteMapping("/delete")
+    public String delete(@RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "");
+        return service.delete(token);
+    }
+
+    @GetMapping("/richUser")
+    public List<UserTable> richUser() {
+        return service.richUser();
+    }
+
+    @GetMapping("/poorUser")
+    public List<UserTable> poorUser() {
+        return service.poorUser();
+    }
 }
