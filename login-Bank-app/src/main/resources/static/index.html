@@ -1,146 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login App</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="config.js"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-
-<div class="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">💳 My Bank</h1>
-
-    <!-- Signup -->
-    <div id="signupForm" class="space-y-4">
-        <input id="signupMobile" type="text" placeholder="Mobile Number"
-               class="w-full p-2 border rounded" />
-        <input id="signupPassword" type="password" placeholder="Password"
-               class="w-full p-2 border rounded" />
-        <button onclick="signup()"
-                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-            Sign Up
-        </button>
-    </div>
-
-    <!-- Login -->
-    <div id="loginForm" class="space-y-4 mt-6">
-        <input id="loginMobile" type="text" placeholder="Mobile Number"
-               class="w-full p-2 border rounded" />
-        <input id="loginPassword" type="password" placeholder="Password"
-               class="w-full p-2 border rounded" />
-        <button onclick="login()"
-                class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
-            Login
-        </button>
-    </div>
-
-    <!-- After Login -->
-    <div id="userActions" class="hidden mt-6 space-y-4">
-        <!-- Balance Card -->
-        <div class="p-4 border rounded-lg shadow bg-gray-50">
-            <p class="text-gray-600 text-sm">Current Balance</p>
-            <p id="balanceText" class="text-2xl font-bold text-indigo-600">--</p>
-        </div>
-
-        <button onclick="refreshBalance()"
-                class="w-full bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600">
-            Refresh Balance
-        </button>
-        <button onclick="logout()"
-                class="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800">
-            Logout
-        </button>
-        <button onclick="deleteAccount()"
-                class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
-            Delete Account
-        </button>
-    </div>
-
-    <p id="message" class="mt-4 text-sm text-gray-600"></p>
-</div>
-
 <script>
-    let currentUser = null;
+    const BASE_URL = "https://spring-boot-app-xxxx.onrender.com/Bank";
+    let token = localStorage.getItem("jwtToken");
+
+    function showMessage(msg) {
+      document.getElementById("message").innerText = msg;
+    }
 
     async function signup() {
+      const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
-      try {
-        const res = await fetch(`${BASE_URL}/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, password })
-        });
-        document.getElementById("message").innerText = res.ok ? "Signup successful!" : "Signup failed!";
-      } catch (err) {
-        document.getElementById("message").innerText = "Error: " + err;
-      }
+
+      const res = await fetch(`${BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile, password })
+      });
+
+      showMessage(await res.text());
     }
 
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
-      try {
-        const res = await fetch(`${BASE_URL}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, password })
-        });
-        if (res.ok) {
-          currentUser = mobile;
-          document.getElementById("message").innerText = "Login successful!";
-          document.getElementById("loginForm").classList.add("hidden");
-          document.getElementById("signupForm").classList.add("hidden");
-          document.getElementById("userActions").classList.remove("hidden");
-          refreshBalance(); // ✅ login ke baad balance auto load hoga
-        } else {
-          document.getElementById("message").innerText = "Login failed!";
-        }
-      } catch (err) {
-        document.getElementById("message").innerText = "Error: " + err;
+
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
+
+      const data = await res.text();
+      showMessage(data);
+
+      if (data.includes("TOKEN:")) {
+        token = data.split("TOKEN:")[1].trim();
+        localStorage.setItem("jwtToken", token);
+        document.getElementById("authPage").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
       }
     }
 
-    function logout() {
-      currentUser = null;
-      document.getElementById("message").innerText = "Logged out!";
-      document.getElementById("loginForm").classList.remove("hidden");
-      document.getElementById("signupForm").classList.remove("hidden");
-      document.getElementById("userActions").classList.add("hidden");
-      document.getElementById("balanceText").innerText = "--";
+    async function balance() {
+      const res = await fetch(`${BASE_URL}/balance`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      showMessage(await res.text());
+    }
+
+    async function deposit() {
+      const res = await fetch(`${BASE_URL}/deposit/100`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showMessage(await res.text());
+    }
+
+    async function withdraw() {
+      const res = await fetch(`${BASE_URL}/withdraw/50`, {
+        method: "PUT",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showMessage(await res.text());
     }
 
     async function deleteAccount() {
-      if (!currentUser) {
-        document.getElementById("message").innerText = "No user logged in!";
-        return;
-      }
-      try {
-        const res = await fetch(`${BASE_URL}/delete/${currentUser}`, { method: "DELETE" });
-        document.getElementById("message").innerText = res.ok ? "Account deleted!" : "Delete failed!";
-        logout();
-      } catch (err) {
-        document.getElementById("message").innerText = "Error: " + err;
-      }
+      const res = await fetch(`${BASE_URL}/delete`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+      showMessage(await res.text());
+      localStorage.removeItem("jwtToken");
+      token = null;
     }
 
-    async function refreshBalance() {
-      if (!currentUser) return;
-      try {
-        const res = await fetch(`${BASE_URL}/balance/${currentUser}`);
-        if (res.ok) {
-          const balance = await res.text();
-          document.getElementById("balanceText").innerText = balance;
-        } else {
-          document.getElementById("balanceText").innerText = "Error!";
-        }
-      } catch (err) {
-        document.getElementById("balanceText").innerText = "Error!";
-      }
+    function logout() {
+      localStorage.removeItem("jwtToken");
+      token = null;
+      document.getElementById("authPage").style.display = "block";
+      document.getElementById("dashboard").style.display = "none";
     }
 </script>
-
-</body>
-</html>
