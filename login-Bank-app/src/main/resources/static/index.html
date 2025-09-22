@@ -4,10 +4,52 @@
     <meta charset="UTF-8">
     <title>Bank App</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          margin: 0;
+          padding: 0;
+          background: linear-gradient(135deg, #6a11cb, #2575fc);
+          color: white;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        h2 { margin-bottom: 15px; }
         .hidden { display: none; }
-        input, button { margin: 5px; padding: 8px; }
-        .box { border: 1px solid #ccc; padding: 15px; border-radius: 10px; margin: 10px auto; width: 300px; }
+        input, button {
+          margin: 8px;
+          padding: 10px;
+          width: 80%;
+          border: none;
+          border-radius: 5px;
+          font-size: 14px;
+        }
+        input {
+          outline: none;
+        }
+        button {
+          background: #ff9800;
+          color: white;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+        button:hover {
+          background: #e68900;
+        }
+        .box {
+          background: rgba(255,255,255,0.1);
+          padding: 20px;
+          border-radius: 12px;
+          margin: 15px auto;
+          width: 320px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #response {
+          background: rgba(0,0,0,0.4);
+          margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -27,7 +69,7 @@
 
 <!-- Dashboard -->
 <div id="dashboard" class="box hidden">
-    <h2>Welcome to Bank</h2>
+    <h2>🏦 My Bank</h2>
     <button onclick="balance()">Check Balance</button><br>
     <input type="number" id="depositAmt" placeholder="Deposit Amount">
     <button onclick="deposit()">Deposit</button><br>
@@ -35,8 +77,8 @@
     <button onclick="withdraw()">Withdraw</button><br>
     <input type="text" id="receiver" placeholder="Receiver Mobile"><br>
     <input type="number" id="sendAmt" placeholder="Amount">
-    <button onclick="send()">Send Money</button><br>
-    <button onclick="logout()">Logout</button>
+    <button onclick="send()">Send Money</button><br><br>
+    <button onclick="logout()" style="background:#f44336;">Logout</button>
 </div>
 
 <!-- Response -->
@@ -68,12 +110,13 @@
         body:JSON.stringify({mobile,password})
       });
       let data = await res.text();
-      if(data.startsWith("ey")){ // JWT token check
-        token = data;
+      console.log("Login response:", data);
+      if(data && data.length > 20){ // token ki length check
+        token = data.trim();
         localStorage.setItem("token", token);
         showDashboard();
       } else {
-        showResponse(data);
+        showResponse("Login Failed: " + data);
       }
     }
 
