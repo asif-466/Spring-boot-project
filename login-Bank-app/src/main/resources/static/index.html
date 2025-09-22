@@ -5,175 +5,206 @@
     <title>Bank App</title>
     <style>
         body {
-          font-family: Arial, sans-serif;
-          text-align: center;
           margin: 0;
-          padding: 0;
-          background: linear-gradient(135deg, #6a11cb, #2575fc);
-          color: white;
+          font-family: Arial, sans-serif;
+          background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
           min-height: 100vh;
           display: flex;
-          flex-direction: column;
           justify-content: center;
+          align-items: center;
         }
-        h2 { margin-bottom: 15px; }
-        .hidden { display: none; }
-        input, button {
-          margin: 8px;
-          padding: 10px;
-          width: 80%;
-          border: none;
-          border-radius: 5px;
-          font-size: 14px;
+        .container {
+          background: white;
+          padding: 25px;
+          border-radius: 12px;
+          width: 350px;
+          box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+          text-align: center;
+        }
+        h2 {
+          margin-bottom: 20px;
+          color: #333;
         }
         input {
-          outline: none;
+          width: 90%;
+          padding: 10px;
+          margin: 8px 0;
+          border: 1px solid #ccc;
+          border-radius: 8px;
         }
         button {
-          background: #ff9800;
+          width: 95%;
+          padding: 10px;
+          margin: 6px 0;
+          border: none;
+          border-radius: 8px;
+          background: #833ab4;
           color: white;
+          font-size: 15px;
           cursor: pointer;
           transition: 0.3s;
         }
         button:hover {
-          background: #e68900;
-        }
-        .box {
-          background: rgba(255,255,255,0.1);
-          padding: 20px;
-          border-radius: 12px;
-          margin: 15px auto;
-          width: 320px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          background: #fd1d1d;
         }
         #response {
-          background: rgba(0,0,0,0.4);
-          margin-top: 10px;
+          margin-top: 15px;
+          background: #f4f4f4;
+          padding: 10px;
+          border-radius: 8px;
+          font-size: 14px;
+          text-align: left;
+          white-space: pre-wrap;
+        }
+        .hidden {
+          display: none;
         }
     </style>
 </head>
 <body>
 
-<!-- Signup/Login Section -->
-<div id="authBox" class="box">
-    <h2>Signup</h2>
-    <input type="text" id="signupMobile" placeholder="Mobile"><br>
-    <input type="password" id="signupPassword" placeholder="Password"><br>
+<div class="container" id="authPage">
+    <h2>Bank App Login</h2>
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <input type="password" id="password" placeholder="Password">
     <button onclick="signup()">Signup</button>
-
-    <h2>Login</h2>
-    <input type="text" id="loginMobile" placeholder="Mobile"><br>
-    <input type="password" id="loginPassword" placeholder="Password"><br>
     <button onclick="login()">Login</button>
 </div>
 
-<!-- Dashboard -->
-<div id="dashboard" class="box hidden">
-    <h2>🏦 My Bank</h2>
-    <button onclick="balance()">Check Balance</button><br>
-    <input type="number" id="depositAmt" placeholder="Deposit Amount">
-    <button onclick="deposit()">Deposit</button><br>
-    <input type="number" id="withdrawAmt" placeholder="Withdraw Amount">
-    <button onclick="withdraw()">Withdraw</button><br>
-    <input type="text" id="receiver" placeholder="Receiver Mobile"><br>
-    <input type="number" id="sendAmt" placeholder="Amount">
-    <button onclick="send()">Send Money</button><br><br>
-    <button onclick="logout()" style="background:#f44336;">Logout</button>
-</div>
+<div class="container hidden" id="dashboard">
+    <h2>Dashboard</h2>
+    <button onclick="balance()">Check Balance</button>
 
-<!-- Response -->
-<div id="response" class="box hidden"></div>
+    <input type="number" id="amount" placeholder="Amount">
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button>
+
+    <input type="text" id="receiver" placeholder="Receiver Mobile">
+    <input type="number" id="sendAmount" placeholder="Amount">
+    <button onclick="sendMoney()">Send Money</button>
+
+    <button onclick="deleteAccount()" style="background: red;">Delete Account</button>
+    <button onclick="logout()" style="background: gray;">Logout</button>
+
+    <div id="response"></div>
+</div>
 
 <script>
     const baseUrl = "https://spring-boot-app-fl4i.onrender.com/Bank";
-    let token = localStorage.getItem("token");
+    let token = null;
 
-    if(token) showDashboard();
-
-    async function signup(){
-      let mobile = document.getElementById("signupMobile").value;
-      let password = document.getElementById("signupPassword").value;
-      let res = await fetch(`${baseUrl}/signup`, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({mobile,password})
-      });
-      showResponse(await res.text());
+    function showResponse(msg) {
+      document.getElementById("response").textContent = msg;
     }
 
-    async function login(){
-      let mobile = document.getElementById("loginMobile").value;
-      let password = document.getElementById("loginPassword").value;
-      let res = await fetch(`${baseUrl}/login`, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({mobile,password})
-      });
-      let data = await res.text();
-      console.log("Login response:", data);
-      if(data && data.length > 20){ // token ki length check
-        token = data.trim();
-        localStorage.setItem("token", token);
-        showDashboard();
-      } else {
-        showResponse("Login Failed: " + data);
+    async function signup() {
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+      try {
+        const res = await fetch(`${baseUrl}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, password })
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse("Error: " + err.message);
       }
     }
 
-    async function balance(){
-      let res = await fetch(`${baseUrl}/balance`, {
-        headers:{Authorization:`Bearer ${token}`}
-      });
-      showResponse(await res.text());
+    async function login() {
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+      try {
+        const res = await fetch(`${baseUrl}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, password })
+        });
+        const data = await res.text();
+        if (data.includes("TOKEN:")) {
+          token = data.split("TOKEN:")[1].trim();
+          document.getElementById("authPage").classList.add("hidden");
+          document.getElementById("dashboard").classList.remove("hidden");
+          showResponse("Login Successful!");
+        } else {
+          showResponse("Login Failed: " + data);
+        }
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
     }
 
-    async function deposit(){
-      let amt = document.getElementById("depositAmt").value;
-      let res = await fetch(`${baseUrl}/deposit/${amt}`, {
-        method:"PUT",
-        headers:{Authorization:`Bearer ${token}`}
-      });
-      showResponse(await res.text());
+    async function balance() {
+      try {
+        const res = await fetch(`${baseUrl}/balance`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
     }
 
-    async function withdraw(){
-      let amt = document.getElementById("withdrawAmt").value;
-      let res = await fetch(`${baseUrl}/withdraw/${amt}`, {
-        method:"PUT",
-        headers:{Authorization:`Bearer ${token}`}
-      });
-      showResponse(await res.text());
+    async function deposit() {
+      const amount = document.getElementById("amount").value;
+      try {
+        const res = await fetch(`${baseUrl}/deposit/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token }
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
     }
 
-    async function send(){
-      let recv = document.getElementById("receiver").value;
-      let amt = document.getElementById("sendAmt").value;
-      let res = await fetch(`${baseUrl}/send/${recv}/${amt}`, {
-        method:"PUT",
-        headers:{Authorization:`Bearer ${token}`}
-      });
-      showResponse(await res.text());
+    async function withdraw() {
+      const amount = document.getElementById("amount").value;
+      try {
+        const res = await fetch(`${baseUrl}/withdraw/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token }
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
     }
 
-    function logout(){
-      localStorage.removeItem("token");
+    async function sendMoney() {
+      const receiver = document.getElementById("receiver").value;
+      const amount = document.getElementById("sendAmount").value;
+      try {
+        const res = await fetch(`${baseUrl}/send/${receiver}/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token }
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
+    }
+
+    async function deleteAccount() {
+      try {
+        const res = await fetch(`${baseUrl}/delete`, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token }
+        });
+        showResponse(await res.text());
+        logout();
+      } catch (err) {
+        showResponse("Error: " + err.message);
+      }
+    }
+
+    function logout() {
       token = null;
+      document.getElementById("authPage").classList.remove("hidden");
       document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("authBox").classList.remove("hidden");
-      showResponse("Logged out successfully.");
-    }
-
-    function showDashboard(){
-      document.getElementById("authBox").classList.add("hidden");
-      document.getElementById("dashboard").classList.remove("hidden");
-    }
-
-    function showResponse(msg){
-      let box = document.getElementById("response");
-      box.classList.remove("hidden");
-      box.innerText = msg;
+      showResponse("Logged out successfully!");
     }
 </script>
-
 </body>
 </html>
