@@ -2,115 +2,190 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank App</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        input, button { margin: 5px; padding: 8px; }
-        #response { margin-top: 15px; color: green; }
+        body {
+          font-family: Arial, sans-serif;
+          background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+          color: #fff;
+          text-align: center;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          margin-top: 60px;
+          padding: 20px;
+        }
+        .card {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 20px;
+          border-radius: 12px;
+          max-width: 400px;
+          margin: auto;
+          box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+        input {
+          width: 90%;
+          padding: 10px;
+          margin: 8px 0;
+          border: none;
+          border-radius: 6px;
+        }
+        button {
+          background: #0095f6;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          margin: 10px;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        button:hover {
+          background: #0077c2;
+        }
+        .hidden { display: none; }
+        h2 { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-<h2>Bank App</h2>
+<div class="container">
+    <!-- Signup Form -->
+    <div id="signupPage" class="card">
+        <h2>Signup</h2>
+        <input type="text" id="signupName" placeholder="Name">
+        <input type="text" id="signupMobile" placeholder="Mobile">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button onclick="signup()">Signup</button>
+        <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+        <p id="signupMsg"></p>
+    </div>
 
-<!-- Signup -->
-<h3>Signup</h3>
-<input id="signupMobile" placeholder="Mobile"><br>
-<input id="signupPassword" type="password" placeholder="Password"><br>
-<button onclick="signup()">Signup</button>
+    <!-- Login Form -->
+    <div id="loginPage" class="card hidden">
+        <h2>Login</h2>
+        <input type="text" id="loginMobile" placeholder="Mobile">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p>Don't have an account? <a href="#" onclick="showSignup()">Signup</a></p>
+        <p id="loginMsg"></p>
+    </div>
 
-<!-- Login -->
-<h3>Login</h3>
-<input id="loginMobile" placeholder="Mobile"><br>
-<input id="loginPassword" type="password" placeholder="Password"><br>
-<button onclick="login()">Login</button>
-
-<!-- After Login Actions -->
-<h3>Actions</h3>
-<button onclick="getBalance()">Check Balance</button><br>
-<input id="depositAmount" placeholder="Amount"><button onclick="deposit()">Deposit</button><br>
-<input id="withdrawAmount" placeholder="Amount"><button onclick="withdraw()">Withdraw</button><br>
-<input id="sendTo" placeholder="Send To (Mobile)">
-<input id="sendAmount" placeholder="Amount">
-<button onclick="sendMoney()">Send</button><br>
-
-<div id="response"></div>
+    <!-- Main App -->
+    <div id="mainPage" class="card hidden">
+        <h2>Welcome to Bank App</h2>
+        <button onclick="checkBalance()">Check Balance</button><br>
+        <input type="number" id="depositAmount" placeholder="Amount">
+        <button onclick="deposit()">Deposit</button><br>
+        <input type="number" id="withdrawAmount" placeholder="Amount">
+        <button onclick="withdraw()">Withdraw</button><br>
+        <input type="text" id="sendTo" placeholder="Send To (Mobile)">
+        <input type="number" id="sendAmount" placeholder="Amount">
+        <button onclick="sendMoney()">Send</button><br>
+        <button onclick="logout()">Logout</button>
+        <p id="mainMsg"></p>
+    </div>
+</div>
 
 <script>
-    const API_URL = "http://localhost:8585/user"; // apna backend URL
+    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
 
-    let token = localStorage.getItem("token") || "";
+    function showSignup() {
+      document.getElementById("signupPage").classList.remove("hidden");
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.add("hidden");
+    }
+
+    function showLogin() {
+      document.getElementById("loginPage").classList.remove("hidden");
+      document.getElementById("signupPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.add("hidden");
+    }
+
+    function showMain() {
+      document.getElementById("mainPage").classList.remove("hidden");
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("signupPage").classList.add("hidden");
+    }
 
     async function signup() {
+      const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
 
-      const res = await fetch(`${API_URL}/signup`, {
+      const res = await fetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password })
+        body: JSON.stringify({ name, mobile, password })
       });
-      const data = await res.text();
-      document.getElementById("response").innerText = data;
+
+      if (res.ok) {
+        document.getElementById("signupMsg").innerText = "Signup Successful!";
+        showLogin();
+      } else {
+        document.getElementById("signupMsg").innerText = "Signup Failed!";
+      }
     }
 
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
 
-      const res = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password })
-      });
-      let data = await res.text();
+      const res = await fetch(`${BASE_URL}/login/${mobile}/${password}`);
+      const text = await res.text();
 
-      // Extract token if present
-      if (data.includes("TOKEN:")) {
-        token = data.split("TOKEN:")[1].trim();
-        localStorage.setItem("token", token);
-        document.getElementById("response").innerText = "Login Successful!";
+      if (text.includes("TOKEN:")) {
+        const token = text.split("TOKEN:")[1].trim();
+        localStorage.setItem("jwtToken", token);
+        document.getElementById("loginMsg").innerText = "Login Successful!";
+        showMain();
       } else {
-        document.getElementById("response").innerText = data;
+        document.getElementById("loginMsg").innerText = "Invalid Login!";
       }
     }
 
-    async function getBalance() {
-      const res = await fetch(`${API_URL}/balance`, {
-        headers: { Authorization: `Bearer ${token}` }
+    async function checkBalance() {
+      const token = localStorage.getItem("jwtToken");
+      const res = await fetch(`${BASE_URL}/balance`, {
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      const data = await res.text();
-      document.getElementById("response").innerText = data;
+      document.getElementById("mainMsg").innerText = await res.text();
     }
 
     async function deposit() {
+      const token = localStorage.getItem("jwtToken");
       const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(`${API_URL}/deposit/${amount}`, {
+      const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      const data = await res.text();
-      document.getElementById("response").innerText = data;
+      document.getElementById("mainMsg").innerText = await res.text();
     }
 
     async function withdraw() {
+      const token = localStorage.getItem("jwtToken");
       const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(`${API_URL}/withdraw/${amount}`, {
+      const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      const data = await res.text();
-      document.getElementById("response").innerText = data;
+      document.getElementById("mainMsg").innerText = await res.text();
     }
 
     async function sendMoney() {
+      const token = localStorage.getItem("jwtToken");
       const to = document.getElementById("sendTo").value;
       const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(`${API_URL}/send/${to}/${amount}`, {
+      const res = await fetch(`${BASE_URL}/send/${to}/${amount}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      const data = await res.text();
-      document.getElementById("response").innerText = data;
+      document.getElementById("mainMsg").innerText = await res.text();
+    }
+
+    function logout() {
+      localStorage.removeItem("jwtToken");
+      showLogin();
     }
 </script>
 </body>
