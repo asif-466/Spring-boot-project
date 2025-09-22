@@ -97,13 +97,21 @@
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
 
-      const res = await fetch(`${BASE_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, mobile, password })
-      });
+      try {
+        const res = await fetch(`${BASE_URL}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, mobile, password })
+        });
 
-      document.getElementById("signupMsg").innerText = await res.text();
+        if (res.ok) {
+          document.getElementById("signupMsg").innerText = "Signup Successful!";
+        } else {
+          document.getElementById("signupMsg").innerText = "Signup Failed!";
+        }
+      } catch (err) {
+        document.getElementById("signupMsg").innerText = "Signup Failed!";
+      }
     }
 
     async function login() {
