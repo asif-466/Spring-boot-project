@@ -6,74 +6,92 @@
     <style>
         body {
           font-family: Arial, sans-serif;
-          background: linear-gradient(to right, #6a11cb, #2575fc);
-          color: white;
+          background: linear-gradient(to right, #74ebd5, #acb6e5);
           text-align: center;
           padding: 20px;
         }
-        .card {
-          background: white;
-          color: black;
-          padding: 20px;
-          border-radius: 12px;
-          max-width: 350px;
+        .container {
+          max-width: 400px;
           margin: auto;
-          margin-top: 50px;
-          box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+          background: #fff;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         input, button {
-          width: 90%;
-          padding: 10px;
           margin: 8px 0;
-          border-radius: 6px;
+          padding: 10px;
+          width: 90%;
+          border-radius: 5px;
           border: 1px solid #ccc;
         }
         button {
-          background: #2575fc;
+          background: #4CAF50;
           color: white;
           cursor: pointer;
-          border: none;
         }
         button:hover {
-          background: #6a11cb;
+          background: #45a049;
         }
         #dashboard { display: none; }
+        .danger { background: red; }
+        pre {
+          text-align: left;
+          background: #f4f4f4;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
     </style>
 </head>
 <body>
-<h1>Mini Bank App</h1>
+<div class="container">
 
-<!-- Signup -->
-<div class="card" id="signup">
-    <h2>Signup</h2>
-    <input type="text" id="signupName" placeholder="Name" required />
-    <input type="text" id="signupMobile" placeholder="Mobile" required />
-    <input type="password" id="signupPassword" placeholder="Password" required />
-    <button onclick="signup()">Signup</button>
-</div>
+    <h2>Bank App</h2>
 
-<!-- Login -->
-<div class="card" id="login">
-    <h2>Login</h2>
-    <input type="text" id="loginMobile" placeholder="Mobile" required />
-    <input type="password" id="loginPassword" placeholder="Password" required />
-    <button onclick="login()">Login</button>
-</div>
+    <!-- Signup -->
+    <div id="signup">
+        <h3>Signup</h3>
+        <input id="signupName" placeholder="Name" />
+        <input id="signupMobile" placeholder="Mobile" />
+        <input id="signupPassword" type="password" placeholder="Password" />
+        <button onclick="signup()">Signup</button>
+    </div>
 
-<!-- Dashboard -->
-<div class="card" id="dashboard">
-    <h2>Welcome to Bank</h2>
-    <button onclick="checkBalance()">Check Balance</button><br>
-    <input type="number" id="depositAmount" placeholder="Deposit Amount" />
-    <button onclick="deposit()">Deposit</button><br>
-    <input type="number" id="withdrawAmount" placeholder="Withdraw Amount" />
-    <button onclick="withdraw()">Withdraw</button><br>
-    <button onclick="logout()">Logout</button>
+    <!-- Login -->
+    <div id="login">
+        <h3>Login</h3>
+        <input id="loginMobile" placeholder="Mobile" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard">
+        <h3>Dashboard</h3>
+        <button onclick="balance()">Check Balance</button><br>
+        <input id="amount" type="number" placeholder="Amount" />
+        <button onclick="deposit()">Deposit</button>
+        <button onclick="withdraw()">Withdraw</button><br>
+        <input id="receiver" placeholder="Receiver Mobile" />
+        <input id="sendAmount" type="number" placeholder="Amount" />
+        <button onclick="sendMoney()">Send Money</button><br><br>
+        <button class="danger" onclick="deleteAccount()">Delete Account</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <h3>Response:</h3>
+    <pre id="response"></pre>
 </div>
 
 <script>
     const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
 
+    function showResponse(msg) {
+      document.getElementById("response").innerText = msg;
+    }
+
+    // Signup
     async function signup() {
       const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
@@ -87,80 +105,117 @@
         });
 
         if (!res.ok) throw new Error("Signup failed");
-        alert("Signup Successful!");
+        showResponse("Signup Successful!");
       } catch (err) {
-        alert(err.message);
+        showResponse(err.message);
       }
     }
 
+    // Login
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
 
       try {
-        let res = await fetch(`${BASE_URL}/login/${mobile}/${password}`);
+        let res = await fetch(`${BASE_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile, password })
+        });
+
         if (!res.ok) throw new Error("Invalid Login");
         let token = await res.text();
-
         localStorage.setItem("token", token);
-        alert("Login Successful!");
 
+        showResponse("Login Successful!");
         document.getElementById("login").style.display = "none";
         document.getElementById("signup").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
       } catch (err) {
-        alert(err.message);
+        showResponse(err.message);
       }
     }
 
-    async function callApi(endpoint, method = "GET", body = null) {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/${endpoint}`, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: body ? JSON.stringify(body) : null
-      });
-      if (!res.ok) throw new Error("Invalid or Expired Token");
-      return res.json();
+    function getToken() {
+      return localStorage.getItem("token");
     }
 
-    async function checkBalance() {
+    // Balance
+    async function balance() {
       try {
-        const balance = await callApi("balance");
-        alert("Your Balance: " + balance);
+        let res = await fetch(`${BASE_URL}/balance`, {
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        showResponse(await res.text());
       } catch (err) {
-        alert(err.message);
+        showResponse(err.message);
       }
     }
 
+    // Deposit
     async function deposit() {
-      const amount = document.getElementById("depositAmount").value;
+      const amount = document.getElementById("amount").value;
       try {
-        const balance = await callApi("deposit", "POST", { amount: amount });
-        alert("Deposit Successful! New Balance: " + balance);
+        let res = await fetch(`${BASE_URL}/deposit/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        showResponse(await res.text());
       } catch (err) {
-        alert(err.message);
+        showResponse(err.message);
       }
     }
 
+    // Withdraw
     async function withdraw() {
-      const amount = document.getElementById("withdrawAmount").value;
+      const amount = document.getElementById("amount").value;
       try {
-        const balance = await callApi("withdraw", "POST", { amount: amount });
-        alert("Withdraw Successful! New Balance: " + balance);
+        let res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        showResponse(await res.text());
       } catch (err) {
-        alert(err.message);
+        showResponse(err.message);
       }
     }
 
+    // Send Money
+    async function sendMoney() {
+      const receiver = document.getElementById("receiver").value;
+      const amount = document.getElementById("sendAmount").value;
+      try {
+        let res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        showResponse(await res.text());
+      } catch (err) {
+        showResponse(err.message);
+      }
+    }
+
+    // Delete Account
+    async function deleteAccount() {
+      try {
+        let res = await fetch(`${BASE_URL}/delete`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        showResponse(await res.text());
+        logout();
+      } catch (err) {
+        showResponse(err.message);
+      }
+    }
+
+    // Logout
     function logout() {
       localStorage.removeItem("token");
-      document.getElementById("dashboard").style.display = "none";
       document.getElementById("login").style.display = "block";
       document.getElementById("signup").style.display = "block";
+      document.getElementById("dashboard").style.display = "none";
+      showResponse("Logged out!");
     }
 </script>
 </body>
