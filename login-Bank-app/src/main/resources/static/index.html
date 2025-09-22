@@ -5,147 +5,130 @@
     <title>Bank App</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        .box { border: 1px solid #ccc; padding: 20px; margin: 10px auto; width: 350px; border-radius: 10px; }
-        input, button { margin: 5px; padding: 10px; width: 90%; }
-        #response { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        .hidden { display: none; }
+        input, button { margin: 5px; padding: 8px; }
+        .box { border: 1px solid #ccc; padding: 15px; border-radius: 10px; margin: 10px auto; width: 300px; }
     </style>
 </head>
 <body>
 
-<h1>Bank App</h1>
-
-<!-- Signup -->
-<div class="box">
-    <h3>Signup</h3>
-    <input id="signupName" placeholder="Name">
-    <input id="signupMobile" placeholder="Mobile">
-    <input id="signupPassword" placeholder="Password" type="password">
+<!-- Signup/Login Section -->
+<div id="authBox" class="box">
+    <h2>Signup</h2>
+    <input type="text" id="signupMobile" placeholder="Mobile"><br>
+    <input type="password" id="signupPassword" placeholder="Password"><br>
     <button onclick="signup()">Signup</button>
-</div>
 
-<!-- Login -->
-<div class="box">
-    <h3>Login</h3>
-    <input id="loginMobile" placeholder="Mobile">
-    <input id="loginPassword" placeholder="Password" type="password">
+    <h2>Login</h2>
+    <input type="text" id="loginMobile" placeholder="Mobile"><br>
+    <input type="password" id="loginPassword" placeholder="Password"><br>
     <button onclick="login()">Login</button>
 </div>
 
-<!-- Balance -->
-<div class="box">
-    <h3>Balance</h3>
-    <button onclick="balance()">Check Balance</button>
-</div>
-
-<!-- Deposit -->
-<div class="box">
-    <h3>Deposit</h3>
-    <input id="depositAmount" placeholder="Amount" type="number">
-    <button onclick="deposit()">Deposit</button>
-</div>
-
-<!-- Withdraw -->
-<div class="box">
-    <h3>Withdraw</h3>
-    <input id="withdrawAmount" placeholder="Amount" type="number">
-    <button onclick="withdraw()">Withdraw</button>
-</div>
-
-<!-- Send Money -->
-<div class="box">
-    <h3>Send Money</h3>
-    <input id="receiver" placeholder="Receiver Mobile">
-    <input id="sendAmount" placeholder="Amount" type="number">
-    <button onclick="sendMoney()">Send</button>
-</div>
-
-<!-- Delete Account -->
-<div class="box">
-    <h3>Delete Account</h3>
-    <button onclick="deleteAcc()">Delete</button>
+<!-- Dashboard -->
+<div id="dashboard" class="box hidden">
+    <h2>Welcome to Bank</h2>
+    <button onclick="balance()">Check Balance</button><br>
+    <input type="number" id="depositAmt" placeholder="Deposit Amount">
+    <button onclick="deposit()">Deposit</button><br>
+    <input type="number" id="withdrawAmt" placeholder="Withdraw Amount">
+    <button onclick="withdraw()">Withdraw</button><br>
+    <input type="text" id="receiver" placeholder="Receiver Mobile"><br>
+    <input type="number" id="sendAmt" placeholder="Amount">
+    <button onclick="send()">Send Money</button><br>
+    <button onclick="logout()">Logout</button>
 </div>
 
 <!-- Response -->
-<div id="response"></div>
+<div id="response" class="box hidden"></div>
 
 <script>
     const baseUrl = "https://spring-boot-app-fl4i.onrender.com/Bank";
     let token = localStorage.getItem("token");
 
-    function showResponse(data) {
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
+    if(token) showDashboard();
 
-    async function signup() {
-      const res = await fetch(baseUrl + "/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: document.getElementById("signupName").value,
-          mobile: document.getElementById("signupMobile").value,
-          password: document.getElementById("signupPassword").value
-        })
-      });
-      showResponse(await res.json());
-    }
-
-    async function login() {
-      const res = await fetch(baseUrl + "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile: document.getElementById("loginMobile").value,
-          password: document.getElementById("loginPassword").value
-        })
-      });
-      const data = await res.text();
-      token = data;
-      localStorage.setItem("token", token);
-      showResponse({ message: "Login successful", token: token });
-    }
-
-    async function balance() {
-      const res = await fetch(baseUrl + "/balance", {
-        headers: { "Authorization": "Bearer " + token }
+    async function signup(){
+      let mobile = document.getElementById("signupMobile").value;
+      let password = document.getElementById("signupPassword").value;
+      let res = await fetch(`${baseUrl}/signup`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({mobile,password})
       });
       showResponse(await res.text());
     }
 
-    async function deposit() {
-      const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(baseUrl + "/deposit/" + amount, {
-        method: "PUT",
-        headers: { "Authorization": "Bearer " + token }
+    async function login(){
+      let mobile = document.getElementById("loginMobile").value;
+      let password = document.getElementById("loginPassword").value;
+      let res = await fetch(`${baseUrl}/login`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({mobile,password})
+      });
+      let data = await res.text();
+      if(data.startsWith("ey")){ // JWT token check
+        token = data;
+        localStorage.setItem("token", token);
+        showDashboard();
+      } else {
+        showResponse(data);
+      }
+    }
+
+    async function balance(){
+      let res = await fetch(`${baseUrl}/balance`, {
+        headers:{Authorization:`Bearer ${token}`}
       });
       showResponse(await res.text());
     }
 
-    async function withdraw() {
-      const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(baseUrl + "/withdraw/" + amount, {
-        method: "PUT",
-        headers: { "Authorization": "Bearer " + token }
+    async function deposit(){
+      let amt = document.getElementById("depositAmt").value;
+      let res = await fetch(`${baseUrl}/deposit/${amt}`, {
+        method:"PUT",
+        headers:{Authorization:`Bearer ${token}`}
       });
       showResponse(await res.text());
     }
 
-    async function sendMoney() {
-      const receiver = document.getElementById("receiver").value;
-      const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(baseUrl + "/send/" + receiver + "/" + amount, {
-        method: "PUT",
-        headers: { "Authorization": "Bearer " + token }
+    async function withdraw(){
+      let amt = document.getElementById("withdrawAmt").value;
+      let res = await fetch(`${baseUrl}/withdraw/${amt}`, {
+        method:"PUT",
+        headers:{Authorization:`Bearer ${token}`}
       });
       showResponse(await res.text());
     }
 
-    async function deleteAcc() {
-      const res = await fetch(baseUrl + "/delete", {
-        method: "DELETE",
-        headers: { "Authorization": "Bearer " + token }
+    async function send(){
+      let recv = document.getElementById("receiver").value;
+      let amt = document.getElementById("sendAmt").value;
+      let res = await fetch(`${baseUrl}/send/${recv}/${amt}`, {
+        method:"PUT",
+        headers:{Authorization:`Bearer ${token}`}
       });
       showResponse(await res.text());
+    }
+
+    function logout(){
       localStorage.removeItem("token");
+      token = null;
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("authBox").classList.remove("hidden");
+      showResponse("Logged out successfully.");
+    }
+
+    function showDashboard(){
+      document.getElementById("authBox").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+    }
+
+    function showResponse(msg){
+      let box = document.getElementById("response");
+      box.classList.remove("hidden");
+      box.innerText = msg;
     }
 </script>
 
