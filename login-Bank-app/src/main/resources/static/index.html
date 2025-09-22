@@ -4,95 +4,108 @@
     <meta charset="UTF-8">
     <title>Bank App</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 10px; width: 300px; }
-        input, button { margin: 5px 0; padding: 8px; width: 95%; }
-        button { cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
-        button:hover { background: #0056b3; }
-        #responseBox { margin-top: 20px; padding: 10px; border: 1px solid green; border-radius: 5px; min-height: 50px; }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; margin: 10px auto; width: 350px; border-radius: 10px; }
+        input, button { margin: 5px; padding: 10px; width: 90%; }
+        #response { margin-top: 20px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<h2>🏦 Bank App</h2>
+<h1>Bank App</h1>
 
 <!-- Signup -->
 <div class="box">
     <h3>Signup</h3>
-    <input type="text" id="signupName" placeholder="Name">
-    <input type="text" id="signupMobile" placeholder="Mobile">
-    <input type="password" id="signupPassword" placeholder="Password">
+    <input id="signupName" placeholder="Name">
+    <input id="signupMobile" placeholder="Mobile">
+    <input id="signupPassword" placeholder="Password" type="password">
     <button onclick="signup()">Signup</button>
 </div>
 
 <!-- Login -->
 <div class="box">
     <h3>Login</h3>
-    <input type="text" id="loginMobile" placeholder="Mobile">
-    <input type="password" id="loginPassword" placeholder="Password">
+    <input id="loginMobile" placeholder="Mobile">
+    <input id="loginPassword" placeholder="Password" type="password">
     <button onclick="login()">Login</button>
 </div>
 
 <!-- Balance -->
 <div class="box">
-    <h3>Check Balance</h3>
-    <button onclick="balance()">Get Balance</button>
+    <h3>Balance</h3>
+    <button onclick="balance()">Check Balance</button>
 </div>
 
 <!-- Deposit -->
 <div class="box">
     <h3>Deposit</h3>
-    <input type="number" id="depositAmount" placeholder="Enter amount">
+    <input id="depositAmount" placeholder="Amount" type="number">
     <button onclick="deposit()">Deposit</button>
 </div>
 
 <!-- Withdraw -->
 <div class="box">
     <h3>Withdraw</h3>
-    <input type="number" id="withdrawAmount" placeholder="Enter amount">
+    <input id="withdrawAmount" placeholder="Amount" type="number">
     <button onclick="withdraw()">Withdraw</button>
 </div>
 
-<!-- Response Box -->
-<div id="responseBox">✅ Response will appear here...</div>
+<!-- Send Money -->
+<div class="box">
+    <h3>Send Money</h3>
+    <input id="receiver" placeholder="Receiver Mobile">
+    <input id="sendAmount" placeholder="Amount" type="number">
+    <button onclick="sendMoney()">Send</button>
+</div>
+
+<!-- Delete Account -->
+<div class="box">
+    <h3>Delete Account</h3>
+    <button onclick="deleteAcc()">Delete</button>
+</div>
+
+<!-- Response -->
+<div id="response"></div>
 
 <script>
-    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
-    let token = "";
+    const baseUrl = "https://spring-boot-app-fl4i.onrender.com/Bank";
+    let token = localStorage.getItem("token");
 
     function showResponse(data) {
-      document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
     }
 
     async function signup() {
-      const name = document.getElementById("signupName").value;
-      const mobile = document.getElementById("signupMobile").value;
-      const password = document.getElementById("signupPassword").value;
-
-      const res = await fetch(BASE_URL + "/signup", {
+      const res = await fetch(baseUrl + "/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, mobile, password })
+        body: JSON.stringify({
+          name: document.getElementById("signupName").value,
+          mobile: document.getElementById("signupMobile").value,
+          password: document.getElementById("signupPassword").value
+        })
       });
       showResponse(await res.json());
     }
 
     async function login() {
-      const mobile = document.getElementById("loginMobile").value;
-      const password = document.getElementById("loginPassword").value;
-
-      const res = await fetch(BASE_URL + "/login", {
+      const res = await fetch(baseUrl + "/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password })
+        body: JSON.stringify({
+          mobile: document.getElementById("loginMobile").value,
+          password: document.getElementById("loginPassword").value
+        })
       });
-      token = await res.text();
-      showResponse({ token });
+      const data = await res.text();
+      token = data;
+      localStorage.setItem("token", token);
+      showResponse({ message: "Login successful", token: token });
     }
 
     async function balance() {
-      const res = await fetch(BASE_URL + "/balance", {
-        method: "GET",
+      const res = await fetch(baseUrl + "/balance", {
         headers: { "Authorization": "Bearer " + token }
       });
       showResponse(await res.text());
@@ -100,7 +113,7 @@
 
     async function deposit() {
       const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(BASE_URL + "/deposit/" + amount, {
+      const res = await fetch(baseUrl + "/deposit/" + amount, {
         method: "PUT",
         headers: { "Authorization": "Bearer " + token }
       });
@@ -109,12 +122,32 @@
 
     async function withdraw() {
       const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(BASE_URL + "/withdraw/" + amount, {
+      const res = await fetch(baseUrl + "/withdraw/" + amount, {
         method: "PUT",
         headers: { "Authorization": "Bearer " + token }
       });
       showResponse(await res.text());
     }
+
+    async function sendMoney() {
+      const receiver = document.getElementById("receiver").value;
+      const amount = document.getElementById("sendAmount").value;
+      const res = await fetch(baseUrl + "/send/" + receiver + "/" + amount, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      showResponse(await res.text());
+    }
+
+    async function deleteAcc() {
+      const res = await fetch(baseUrl + "/delete", {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+      showResponse(await res.text());
+      localStorage.removeItem("token");
+    }
 </script>
+
 </body>
 </html>
