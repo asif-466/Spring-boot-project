@@ -5,205 +5,189 @@
     <title>Bank App</title>
     <style>
         body {
-          margin: 0;
           font-family: Arial, sans-serif;
-          background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
-          min-height: 100vh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
+          background: linear-gradient(to right, #6a11cb, #2575fc);
+          color: white;
+          text-align: center;
+          padding: 20px;
         }
         .container {
-          background: white;
-          padding: 25px;
-          border-radius: 12px;
-          width: 350px;
-          box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-          text-align: center;
+          max-width: 400px;
+          margin: auto;
+          background: rgba(0,0,0,0.6);
+          padding: 20px;
+          border-radius: 15px;
+          box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
         }
-        h2 {
-          margin-bottom: 20px;
-          color: #333;
-        }
-        input {
+        input, button {
           width: 90%;
           padding: 10px;
           margin: 8px 0;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-        }
-        button {
-          width: 95%;
-          padding: 10px;
-          margin: 6px 0;
           border: none;
           border-radius: 8px;
-          background: #833ab4;
+        }
+        input {
+          background: #f1f1f1;
+          color: black;
+        }
+        button {
+          background: #ff9800;
           color: white;
-          font-size: 15px;
+          font-weight: bold;
           cursor: pointer;
           transition: 0.3s;
         }
         button:hover {
-          background: #fd1d1d;
+          background: #e68900;
         }
-        #response {
-          margin-top: 15px;
-          background: #f4f4f4;
-          padding: 10px;
-          border-radius: 8px;
-          font-size: 14px;
-          text-align: left;
-          white-space: pre-wrap;
+        h2 {
+          margin-top: 20px;
         }
-        .hidden {
-          display: none;
-        }
+        #actions { display: none; }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1>Bank App</h1>
 
-<div class="container" id="authPage">
-    <h2>Bank App Login</h2>
-    <input type="text" id="mobile" placeholder="Mobile Number">
-    <input type="password" id="password" placeholder="Password">
+    <!-- Signup -->
+    <h2>Signup</h2>
+    <input type="text" id="signupName" placeholder="Enter Name"><br>
+    <input type="text" id="signupMobile" placeholder="Enter Mobile"><br>
+    <input type="number" id="signupBalance" placeholder="Enter Initial Balance"><br>
     <button onclick="signup()">Signup</button>
+    <p id="signupResult"></p>
+
+    <!-- Login -->
+    <h2>Login</h2>
+    <input type="text" id="loginMobile" placeholder="Enter Mobile"><br>
+    <input type="password" id="loginPassword" placeholder="Enter Password"><br>
     <button onclick="login()">Login</button>
-</div>
+    <p id="loginResult"></p>
 
-<div class="container hidden" id="dashboard">
-    <h2>Dashboard</h2>
-    <button onclick="balance()">Check Balance</button>
-
-    <input type="number" id="amount" placeholder="Amount">
-    <button onclick="deposit()">Deposit</button>
-    <button onclick="withdraw()">Withdraw</button>
-
-    <input type="text" id="receiver" placeholder="Receiver Mobile">
-    <input type="number" id="sendAmount" placeholder="Amount">
-    <button onclick="sendMoney()">Send Money</button>
-
-    <button onclick="deleteAccount()" style="background: red;">Delete Account</button>
-    <button onclick="logout()" style="background: gray;">Logout</button>
-
-    <div id="response"></div>
+    <!-- After Login -->
+    <div id="actions">
+        <h2>Account Actions</h2>
+        <button onclick="balance()">Check Balance</button>
+        <button onclick="deposit()">Deposit</button>
+        <button onclick="withdraw()">Withdraw</button>
+        <button onclick="sendMoney()">Send Money</button>
+        <button onclick="deleteAccount()">Delete Account</button>
+        <button onclick="logout()">Logout</button>
+        <p id="actionResult"></p>
+    </div>
 </div>
 
 <script>
-    const baseUrl = "https://spring-boot-app-fl4i.onrender.com/Bank";
-    let token = null;
+    let token = "";
 
-    function showResponse(msg) {
-      document.getElementById("response").textContent = msg;
+    function signup() {
+      const name = document.getElementById("signupName").value;
+      const mobile = document.getElementById("signupMobile").value;
+      const balance = parseFloat(document.getElementById("signupBalance").value);
+
+      fetch("https://spring-boot-app-fl4i.onrender.com/Bank/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile, balance })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("signupResult").innerText = "Signup Successful!";
+      })
+      .catch(err => {
+        document.getElementById("signupResult").innerText = "Signup Failed!";
+      });
     }
 
-    async function signup() {
-      const mobile = document.getElementById("mobile").value;
-      const password = document.getElementById("password").value;
-      try {
-        const res = await fetch(`${baseUrl}/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, password })
-        });
-        showResponse(await res.text());
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
-    }
+    function login() {
+      const mobile = document.getElementById("loginMobile").value;
+      const password = document.getElementById("loginPassword").value;
 
-    async function login() {
-      const mobile = document.getElementById("mobile").value;
-      const password = document.getElementById("password").value;
-      try {
-        const res = await fetch(`${baseUrl}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile, password })
-        });
-        const data = await res.text();
-        if (data.includes("TOKEN:")) {
-          token = data.split("TOKEN:")[1].trim();
-          document.getElementById("authPage").classList.add("hidden");
-          document.getElementById("dashboard").classList.remove("hidden");
-          showResponse("Login Successful!");
+      fetch("https://spring-boot-app-fl4i.onrender.com/Bank/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      })
+      .then(res => res.text())
+      .then(data => {
+        if (data.startsWith("ey")) { // token usually starts with "ey..."
+          token = data;
+          document.getElementById("loginResult").innerText = "Login Successful!";
+          document.getElementById("actions").style.display = "block";
         } else {
-          showResponse("Login Failed: " + data);
+          document.getElementById("loginResult").innerText = "Login Failed!";
         }
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+      })
+      .catch(err => {
+        document.getElementById("loginResult").innerText = "Login Failed!";
+      });
     }
 
-    async function balance() {
-      try {
-        const res = await fetch(`${baseUrl}/balance`, {
-          headers: { Authorization: "Bearer " + token }
-        });
-        showResponse(await res.text());
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+    function balance() {
+      fetch("https://spring-boot-app-fl4i.onrender.com/Bank/balance", {
+        method: "GET",
+        headers: { "Authorization": "Bearer " + token }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("actionResult").innerText = "Balance: " + data;
+      });
     }
 
-    async function deposit() {
-      const amount = document.getElementById("amount").value;
-      try {
-        const res = await fetch(`${baseUrl}/deposit/${amount}`, {
-          method: "PUT",
-          headers: { Authorization: "Bearer " + token }
-        });
-        showResponse(await res.text());
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+    function deposit() {
+      const amount = prompt("Enter deposit amount:");
+      fetch(`https://spring-boot-app-fl4i.onrender.com/Bank/deposit/${amount}`, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("actionResult").innerText = data;
+      });
     }
 
-    async function withdraw() {
-      const amount = document.getElementById("amount").value;
-      try {
-        const res = await fetch(`${baseUrl}/withdraw/${amount}`, {
-          method: "PUT",
-          headers: { Authorization: "Bearer " + token }
-        });
-        showResponse(await res.text());
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+    function withdraw() {
+      const amount = prompt("Enter withdraw amount:");
+      fetch(`https://spring-boot-app-fl4i.onrender.com/Bank/withdraw/${amount}`, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("actionResult").innerText = data;
+      });
     }
 
-    async function sendMoney() {
-      const receiver = document.getElementById("receiver").value;
-      const amount = document.getElementById("sendAmount").value;
-      try {
-        const res = await fetch(`${baseUrl}/send/${receiver}/${amount}`, {
-          method: "PUT",
-          headers: { Authorization: "Bearer " + token }
-        });
-        showResponse(await res.text());
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+    function sendMoney() {
+      const receiver = prompt("Enter receiver mobile:");
+      const amount = prompt("Enter amount to send:");
+      fetch(`https://spring-boot-app-fl4i.onrender.com/Bank/send/${receiver}/${amount}`, {
+        method: "PUT",
+        headers: { "Authorization": "Bearer " + token }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("actionResult").innerText = data;
+      });
     }
 
-    async function deleteAccount() {
-      try {
-        const res = await fetch(`${baseUrl}/delete`, {
-          method: "DELETE",
-          headers: { Authorization: "Bearer " + token }
-        });
-        showResponse(await res.text());
+    function deleteAccount() {
+      fetch("https://spring-boot-app-fl4i.onrender.com/Bank/delete", {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("actionResult").innerText = data;
         logout();
-      } catch (err) {
-        showResponse("Error: " + err.message);
-      }
+      });
     }
 
     function logout() {
-      token = null;
-      document.getElementById("authPage").classList.remove("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
-      showResponse("Logged out successfully!");
+      token = "";
+      document.getElementById("actions").style.display = "none";
+      document.getElementById("loginResult").innerText = "Logged out!";
     }
 </script>
 </body>
