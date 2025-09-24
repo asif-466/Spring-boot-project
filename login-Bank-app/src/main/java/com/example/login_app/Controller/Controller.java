@@ -1,5 +1,9 @@
-package com.example.login_app;
+package com.example.login_app.Controller;
 
+import com.example.login_app.DtoClass.DtoLoginRequest;
+import com.example.login_app.DtoClass.DtoSignupRequest;
+import com.example.login_app.Service.LoginApp;
+import com.example.login_app.Entity.UserTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

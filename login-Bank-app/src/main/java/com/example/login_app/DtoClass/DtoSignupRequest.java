@@ -1,4 +1,4 @@
-package com.example.login_app;
+package com.example.login_app.DtoClass;
 
 public class DtoSignupRequest {
     String name;

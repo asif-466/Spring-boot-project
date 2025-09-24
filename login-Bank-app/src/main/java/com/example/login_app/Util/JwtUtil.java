@@ -1,4 +1,4 @@
-package com.example.login_app;
+package com.example.login_app.Util;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

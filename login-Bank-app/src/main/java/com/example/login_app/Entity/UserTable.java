@@ -1,6 +1,5 @@
-package com.example.login_app;
+package com.example.login_app.Entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;

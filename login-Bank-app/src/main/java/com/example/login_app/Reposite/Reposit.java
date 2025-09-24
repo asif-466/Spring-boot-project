@@ -1,5 +1,6 @@
-package com.example.login_app;
+package com.example.login_app.Reposite;
 
+import com.example.login_app.Entity.UserTable;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

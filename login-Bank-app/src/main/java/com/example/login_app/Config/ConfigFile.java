@@ -1,4 +1,4 @@
-package com.example.login_app;
+package com.example.login_app.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +17,11 @@ public class ConfigFile {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
+                        .requestMatchers("/Bank/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form ->form.disable())
+                .httpBasic(basic ->basic.disable());
         return http.build();
     }
 }
