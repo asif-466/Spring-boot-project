@@ -17,6 +17,7 @@ public class ConfigFile {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "index.html", "static/**").permitAll()
                         .requestMatchers("/Bank/**").permitAll()
                         .anyRequest().authenticated()
                 )
