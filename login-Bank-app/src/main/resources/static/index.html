@@ -199,7 +199,12 @@
         }
         let history = "Transaction History:\n";
         result.data.forEach(tx => {
-          history += `\nType: ${tx.type}, Amount: ${tx.amount}, Receiver: ${tx.receiver || "-"}, Time: ${tx.timestamp}`;
+          let line = `Type: ${tx.type}, Amount: ${tx.amount}`;
+          if (tx.type === "SEND" || tx.type === "RECEIVED") {
+            line += `, Receiver: ${tx.receiver}`;
+          }
+          line += `, Time: ${tx.timestamp}`;
+          history += `\n${line}`;
         });
         document.getElementById("response").innerText = history;
       } else {
