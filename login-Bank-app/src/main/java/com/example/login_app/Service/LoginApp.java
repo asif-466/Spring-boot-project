@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -80,7 +81,7 @@ public class LoginApp {
             t.setMobile(mobile);
             t.setType("DEPOSIT");
             t.setAmount(amount);
-            t.setTimestamp(LocalDateTime.now());
+            t.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
             trepo.save(t);
             return new DtoApiResponse("success","DEPOSITED NEW BALANCE:",balance);
         } else {
@@ -110,7 +111,7 @@ public class LoginApp {
             t.setMobile(mobile);
             t.setType("WITHDRAW");
             t.setAmount(amount);
-            t.setTimestamp(LocalDateTime.now());
+            t.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
             trepo.save(t);
             return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",new_balance);
         } else {
@@ -146,7 +147,7 @@ public class LoginApp {
         ts.setType("SEND");
         ts.setAmount(amount);
         ts.setReceiver(receiverMobile);
-        ts.setTimestamp(LocalDateTime.now());
+        ts.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         trepo.save(ts);
 
         Transaction tr=new Transaction();
@@ -154,7 +155,7 @@ public class LoginApp {
         tr.setType("RECEIVED");
         tr.setAmount(amount);
         tr.setReceiver(senderMobile);
-        tr.setTimestamp(LocalDateTime.now());
+        tr.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         trepo.save(tr);
 
         return new DtoApiResponse("success","TRANSFER SUCCESSFUL TO",recevername);
