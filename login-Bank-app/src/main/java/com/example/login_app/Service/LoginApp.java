@@ -1,6 +1,6 @@
 package com.example.login_app.Service;
 
-import com.example.login_app.DtoClass.DtoSignupRequest;
+import com.example.login_app.DtoClass.DtoApiResponse;
 import com.example.login_app.Util.JwtUtil;
 import com.example.login_app.Reposite.Reposit;
 import com.example.login_app.Entity.UserTable;
@@ -22,95 +22,96 @@ public class LoginApp {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public DtoSignupRequest signup(UserTable obj) {
-        if (obj.getMobile() == null || obj.getMobile().length() != 10) {
-            throw new RuntimeException("INVALID NUMBER");
+    public DtoApiResponse signup(UserTable user) {
+        if (user.getMobile() == null || user.getMobile().length() != 10) {
+            return new DtoApiResponse("error","INVALID NUMBER",null);
         }
-        if (repo.findById(obj.getMobile()).isPresent()) {
-            throw new RuntimeException("USER ALREADY REGISTERED");
+        if (repo.findById(user.getMobile()).isPresent()) {
+            return new DtoApiResponse("error","USER ALREADY REGISTERED",null);
         }
-        obj.setBalance(0.0);
-        obj.setPassword(passwordEncoder.encode(obj.getPassword()));
-        repo.save(obj);
-        return new DtoSignupRequest(obj.getName(),obj.getMobile(),obj.getBalance());
+        user.setBalance(0.0);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        UserTable savedUser=repo.save(user);
+        return new DtoApiResponse("success","SIGNUP SUCCESSFUL",savedUser.getName());
 
     }
 
-    public String login(String mobile, String password) {
+    public DtoApiResponse login(String mobile, String password) {
         UserTable user = repo.findById(mobile).orElse(null);
         if (user == null) {
-            return "INVALID MOBILE NUMBER";
+            return new DtoApiResponse("error","INVALID NUMBER",null);
         }
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return "INVALID PASSWORD ";
+            return new DtoApiResponse("error","INVALID PASSWORD",null);
         }
         String token = jwtUtil.generateToken(mobile);
-        return "Login Successful! TOKEN: " + token;
+        return new DtoApiResponse("success","LOGIN SUCCESSFUL",token);
 
     }
 
-    public String balance(String token) {
+    public DtoApiResponse balance(String token) {
         if(!jwtUtil.validateToken(token)){
-            return "INVALID OR EXPIRE TOKEN";
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
         }
         String mobile = jwtUtil.extractMobile(token);
         Double balance = repo.balance(mobile);
-        return "BALANCE: " + balance;
+        return new DtoApiResponse("success","BALANCE:",balance);
+
     }
 
 
     @Transactional
-    public String deposit(String token, double amount) {
+    public DtoApiResponse deposit(String token, double amount) {
         if(!jwtUtil.validateToken(token)){
-            return "INVALID OR EXPIRE TOKEN";
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
         }
         String mobile = jwtUtil.extractMobile(token);
         int row = repo.deposit(mobile, amount);
         if (row > 0) {
             Double balance = repo.balance(mobile);
-            return "Deposited: " + amount + " | New Balance: " + balance;
+            return new DtoApiResponse("success","DEPOSITED NEW BALANCE:",balance);
         } else {
-            return "user not found";
+            return new DtoApiResponse("error","USER NOT FOUND",null);
         }
 
     }
 
 
     @Transactional
-    public String withdraw(String token, double amount) {
+    public DtoApiResponse withdraw(String token, double amount) {
         if(!jwtUtil.validateToken(token)){
-            return "INVALID OR EXPIRE TOKEN";
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
         }
         String mobile = jwtUtil.extractMobile(token);
         Double balance = repo.balance(mobile);
         if (balance == null) {
-            return "user not found";
+            return new DtoApiResponse("error","USER NOT FOUND",null);
         }
         if (amount > balance) {
-            return "low balance! Available  " + balance;
+            return new DtoApiResponse("error","LOW CURRENT BALANCE:",balance);
         }
         int row = repo.withdraw(mobile, amount);
         if (row > 0) {
             Double new_balance = repo.balance(mobile);
-            return "Withdrawal: " + amount + " | New Balance: " + new_balance;
+            return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",balance);
         } else {
-            return "withdrawal failed";
+            return new DtoApiResponse("error","WITHDRAW FAILED",null);
         }
     }
 
     @Transactional
-    public String send(String token, String receiverMobile, double amount) {
+    public DtoApiResponse send(String token, String receiverMobile, double amount) {
         if(!jwtUtil.validateToken(token)){
-            return "INVALID OR EXPIRE TOKEN";
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
         }
         String senderMobile = jwtUtil.extractMobile(token);
         Double senderbalance = repo.balance(senderMobile);
         Double receverBalance = repo.balance(receiverMobile);
         if (senderbalance == null || receverBalance == null) {
-            return "user not found";
+            return new DtoApiResponse("error","USER NOT FOUND",null);
         }
         if (amount > senderbalance) {
-            return "low balance!Available" + senderbalance;
+            return new DtoApiResponse("error","LOW CURRENT BALANCE",senderbalance);
         }
         repo.withdraw(senderMobile, amount);
         repo.deposit(receiverMobile, amount);
@@ -121,20 +122,20 @@ public class LoginApp {
         String sendername = repo.name(senderMobile);
         String recevername = repo.name(receiverMobile);
 
-        return "sent " + amount + " from " + sendername + " to " + recevername;
+        return new DtoApiResponse("success","SENT SUCCESSFUL",null);
     }
 
-    public String delete(String token) {
+    public DtoApiResponse delete(String token) {
         if(!jwtUtil.validateToken(token)){
-            return "INVALID OR EXPIRE TOKEN";
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
         }
         String mobile = jwtUtil.extractMobile(token);
-        UserTable obj = repo.findById(mobile).orElse(null);
-        if (obj == null) {
-            return "user not found";
+        UserTable user = repo.findById(mobile).orElse(null);
+        if (user == null) {
+            return new DtoApiResponse("error","USER NOT FOUND",null);
         } else {
-            repo.delete(obj);
-            return "user deleted " + obj.getName();
+            repo.delete(user);
+            return new DtoApiResponse("error","USER DELETED",user);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.example.login_app.Controller;
 
+import com.example.login_app.DtoClass.DtoApiResponse;
 import com.example.login_app.DtoClass.DtoLoginRequest;
-import com.example.login_app.DtoClass.DtoSignupRequest;
 import com.example.login_app.Service.LoginApp;
 import com.example.login_app.Entity.UserTable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,41 +17,41 @@ public class Controller {
     public LoginApp service;
 
     @PostMapping("/signup")
-    public DtoSignupRequest signup(@RequestBody UserTable obj) {
-        return service.signup(obj);
+    public DtoApiResponse signup(@RequestBody UserTable user) {
+        return service.signup(user);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody DtoLoginRequest request) {
+    public DtoApiResponse login(@RequestBody DtoLoginRequest request) {
         return service.login(request.mobile, request.password);
     }
 
     @GetMapping("/balance")
-    public String balance(@RequestHeader("Authorization") String token) {
+    public DtoApiResponse balance(@RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "");
         return service.balance(token);
     }
 
     @PutMapping("/deposit/{amount}")
-    public String deposit(@RequestHeader("Authorization") String token, @PathVariable double amount) {
+    public DtoApiResponse deposit(@RequestHeader("Authorization") String token, @PathVariable double amount) {
         token = token.replace("Bearer ", "");
         return service.deposit(token, amount);
     }
 
     @PutMapping("/withdraw/{amount}")
-    public String withdraw(@RequestHeader("Authorization") String token, @PathVariable double amount) {
+    public DtoApiResponse withdraw(@RequestHeader("Authorization") String token, @PathVariable double amount) {
         token = token.replace("Bearer ", "");
         return service.withdraw(token, amount);
     }
 
     @PutMapping("/send/{receiver}/{amount}")
-    public String sendMoney(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
+    public DtoApiResponse sendMoney(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
         token = token.replace("Bearer ", "");
         return service.send(token, receiver, amount);
     }
 
     @DeleteMapping("/delete")
-    public String delete(@RequestHeader("Authorization") String token) {
+    public DtoApiResponse delete(@RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "");
         return service.delete(token);
     }
