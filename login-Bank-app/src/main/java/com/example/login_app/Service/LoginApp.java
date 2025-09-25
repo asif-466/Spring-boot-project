@@ -122,7 +122,7 @@ public class LoginApp {
         String sendername = repo.name(senderMobile);
         String recevername = repo.name(receiverMobile);
 
-        return new DtoApiResponse("success","SENT SUCCESSFUL",null);
+        return new DtoApiResponse("success","SENT SUCCESSFUL TO",recevername);
     }
 
     public DtoApiResponse delete(String token) {
