@@ -5,48 +5,49 @@
     <title>Bank App</title>
     <style>
         body {
-        font-family: Arial, sans-serif;
-        background: #fafafa;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
+          font-family: Arial, sans-serif;
+          background: #fafafa;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
         }
         .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        width: 350px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        text-align: center;
+          background: #fff;
+          padding: 20px;
+          border-radius: 10px;
+          width: 350px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          text-align: center;
         }
         input, button {
-        width: 90%;
-        padding: 10px;
-        margin: 5px 0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+          width: 90%;
+          padding: 10px;
+          margin: 5px 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
         }
         button {
-        background: #3897f0;
-        color: white;
-        border: none;
-        cursor: pointer;
+          background: #3897f0;
+          color: white;
+          border: none;
+          cursor: pointer;
         }
         button:hover {
-        background: #287dc9;
+          background: #287dc9;
         }
         .hidden { display: none; }
         .response-box {
-        background: #f4f4f4;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 5px;
-        white-space: pre-wrap;
-        text-align: left;
-        max-height: 200px;
-        overflow-y: auto;
+          background: #f4f4f4;
+          padding: 10px;
+          margin-top: 10px;
+          border-radius: 5px;
+          white-space: pre-wrap;
+          text-align: left;
+          max-height: 200px;
+          overflow-y: auto;
+          font-size: 14px;
         }
         h2 { color: #333; }
         .error { color: red; }
@@ -99,140 +100,160 @@
     const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
 
     async function signup() {
-    const name = document.getElementById("signupName").value;
-    const mobile = document.getElementById("signupMobile").value;
-    const password = document.getElementById("signupPassword").value;
+      const name = document.getElementById("signupName").value;
+      const mobile = document.getElementById("signupMobile").value;
+      const password = document.getElementById("signupPassword").value;
 
-    try {
-    const res = await fetch(`${BASE_URL}/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, mobile, password })
-    });
+      try {
+        const res = await fetch(`${BASE_URL}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, mobile, password })
+        });
 
-    const result = await res.json();
-    if (result.status === "success") {
-    document.getElementById("signupMsg").innerText = result.message;
-    document.getElementById("signupMsg").className = "success";
-    } else {
-    document.getElementById("signupMsg").innerText = result.message;
-    document.getElementById("signupMsg").className = "error";
-    }
-    } catch (err) {
-    document.getElementById("signupMsg").innerText = "Signup Failed!";
-    document.getElementById("signupMsg").className = "error";
-    }
+        const result = await res.json();
+        if (result.status === "success") {
+          document.getElementById("signupMsg").innerText = "✅ " + result.message;
+          document.getElementById("signupMsg").className = "success";
+        } else {
+          document.getElementById("signupMsg").innerText = "❌ " + result.message;
+          document.getElementById("signupMsg").className = "error";
+        }
+      } catch (err) {
+        document.getElementById("signupMsg").innerText = "❌ Signup Failed!";
+        document.getElementById("signupMsg").className = "error";
+      }
     }
 
     async function login() {
-    const mobile = document.getElementById("loginMobile").value;
-    const password = document.getElementById("loginPassword").value;
+      const mobile = document.getElementById("loginMobile").value;
+      const password = document.getElementById("loginPassword").value;
 
-    const res = await fetch(`${BASE_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobile, password })
-    });
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (result.status === "success") {
-    localStorage.setItem("jwtToken", result.data);
-    document.getElementById("loginMsg").innerText = result.message;
-    document.getElementById("loginMsg").className = "success";
-    showMain();
-    } else {
-    document.getElementById("loginMsg").innerText = result.message;
-    document.getElementById("loginMsg").className = "error";
-    }
+      if (result.status === "success") {
+        localStorage.setItem("jwtToken", result.data);
+        document.getElementById("loginMsg").innerText = "✅ " + result.message;
+        document.getElementById("loginMsg").className = "success";
+        showMain();
+      } else {
+        document.getElementById("loginMsg").innerText = "❌ " + result.message;
+        document.getElementById("loginMsg").className = "error";
+      }
     }
 
     async function balance() {
-    const res = await fetch(`${BASE_URL}/balance`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
-    document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      const res = await fetch(`${BASE_URL}/balance`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        document.getElementById("response").innerText = `💰 Balance: ₹${result.data}`;
+      } else {
+        document.getElementById("response").innerText = "❌ " + result.message;
+      }
     }
 
     async function deposit() {
-    const amount = document.getElementById("amount").value;
-    const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
-    document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      const amount = document.getElementById("amount").value;
+      const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        document.getElementById("response").innerText =
+          `✅ Deposit Successful!\n💰 New Balance: ₹${result.data}`;
+      } else {
+        document.getElementById("response").innerText = "❌ " + result.message;
+      }
     }
 
     async function withdraw() {
-    const amount = document.getElementById("amount").value;
-    const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
-    document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      const amount = document.getElementById("amount").value;
+      const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        document.getElementById("response").innerText =
+          `✅ Withdrawal Successful!\n💰 New Balance: ₹${result.data}`;
+      } else {
+        document.getElementById("response").innerText = "❌ " + result.message;
+      }
     }
 
     async function sendMoney() {
-    const receiver = document.getElementById("receiver").value;
-    const amount = document.getElementById("sendAmount").value;
-    const res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
-    document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      const receiver = document.getElementById("receiver").value;
+      const amount = document.getElementById("sendAmount").value;
+      const res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        document.getElementById("response").innerText =
+          `✅ Sent ₹${amount} to ${result.data}`;
+      } else {
+        document.getElementById("response").innerText = "❌ " + result.message;
+      }
     }
 
     async function transactionHistory() {
-    const res = await fetch(`${BASE_URL}/history`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
+      const res = await fetch(`${BASE_URL}/history`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
 
-    if (result.status === "success") {
-    if (!result.data || result.data.length === 0) {
-    document.getElementById("response").innerText = "No transactions found!";
-    return;
-    }
-    let history = "Transaction History:\n";
-    result.data.forEach(tx => {
-              history += `\nType: ${tx.type}, Amount: ${tx.amount}, Receiver: ${tx.receiver || "-"}, Time: ${tx.timestamp}`;
-              let line = `Type: ${tx.type}, Amount: ${tx.amount}`;
-              if (tx.type === "SEND" || tx.type === "RECEIVED") {
-                line += `, Receiver: ${tx.receiver}`;
-              }
-              line += `, Time: ${tx.timestamp}`;
-              history += `\n${line}`;
-    });
-    document.getElementById("response").innerText = history;
-    } else {
-    document.getElementById("response").innerText = result.message;
-    }
+      if (result.status === "success") {
+        if (!result.data || result.data.length === 0) {
+          document.getElementById("response").innerText = "No transactions found!";
+          return;
+        }
+        let history = "📜 Transaction History:\n";
+        result.data.forEach(tx => {
+          let line = `• ${tx.type} | ₹${tx.amount}`;
+          if (tx.type === "SEND") {
+            line += ` | To: ${tx.from}`;
+          } else if (tx.type === "RECEIVED") {
+            line += ` | From: ${tx.from}`;
+          }
+          line += ` | 🕒 ${tx.timestamp}`;
+          history += `\n${line}`;
+        });
+        document.getElementById("response").innerText = history;
+      } else {
+        document.getElementById("response").innerText = "❌ " + result.message;
+      }
     }
 
     async function deleteAccount() {
-    const res = await fetch(`${BASE_URL}/delete`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-    });
-    const result = await res.json();
-    document.getElementById("response").innerText = result.message;
+      const res = await fetch(`${BASE_URL}/delete`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+      document.getElementById("response").innerText = result.message;
     }
 
     function logout() {
-    localStorage.removeItem("jwtToken");
-    document.getElementById("mainPage").classList.add("hidden");
-    document.getElementById("authPage").classList.remove("hidden");
-    document.getElementById("loginMsg").innerText = "Logged out!";
-    document.getElementById("loginMsg").className = "";
+      localStorage.removeItem("jwtToken");
+      document.getElementById("mainPage").classList.add("hidden");
+      document.getElementById("authPage").classList.remove("hidden");
+      document.getElementById("loginMsg").innerText = "Logged out!";
+      document.getElementById("loginMsg").className = "";
     }
 
     function showMain() {
-    document.getElementById("authPage").classList.add("hidden");
-    document.getElementById("mainPage").classList.remove("hidden");
+      document.getElementById("authPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.remove("hidden");
     }
 </script>
 
