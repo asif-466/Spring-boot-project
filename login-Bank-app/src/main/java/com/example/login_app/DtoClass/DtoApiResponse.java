@@ -2,11 +2,11 @@ package com.example.login_app.DtoClass;
 
 public class DtoApiResponse {
        private String status;
-       private String msg;
+       private String message;
        private Object data;
-       public DtoApiResponse(String status, String msg, Object data){
+       public DtoApiResponse(String status, String message, Object data){
            this.status=status;
-           this.msg=msg;
+           this.message=message;
            this.data=data;
        }
 
@@ -19,11 +19,11 @@ public class DtoApiResponse {
     }
 
     public String getMsg() {
-        return msg;
+        return message;
     }
 
     public void setMsg(String msg) {
-        this.msg = msg;
+        this.message = msg;
     }
 
     public Object getData() {
