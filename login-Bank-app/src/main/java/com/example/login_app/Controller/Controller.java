@@ -45,7 +45,7 @@ public class Controller {
     }
 
     @PutMapping("/send/{receiver}/{amount}")
-    public DtoApiResponse sendMoney(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
+    public DtoApiResponse send(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
         token = token.replace("Bearer ", "");
         return service.send(token, receiver, amount);
     }

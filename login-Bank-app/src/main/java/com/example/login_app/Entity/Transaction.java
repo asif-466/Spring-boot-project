@@ -1,5 +1,6 @@
 package com.example.login_app.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class Transaction {
     private String type;
     private Double amount;
     private String receiver;
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalDateTime timestamp;
 
     public Transaction(){}

@@ -140,15 +140,24 @@ public class LoginApp {
 
         String sendername = repo.name(senderMobile);
         String recevername = repo.name(receiverMobile);
-        Transaction t=new Transaction();
-        t.setMobile(receiverMobile);
-        t.setType("SENT");
-        t.setAmount(amount);
-        t.setReceiver(recevername);
-        t.setTimestamp(LocalDateTime.now());
-        trepo.save(t);
 
-        return new DtoApiResponse("success","SENT SUCCESSFUL TO",recevername);
+        Transaction ts=new Transaction();
+        ts.setMobile(senderMobile);
+        ts.setType("SEND");
+        ts.setAmount(amount);
+        ts.setReceiver(receiverMobile);
+        ts.setTimestamp(LocalDateTime.now());
+        trepo.save(ts);
+
+        Transaction tr=new Transaction();
+        tr.setMobile(receiverMobile);
+        tr.setType("RECEIVED");
+        tr.setAmount(amount);
+        tr.setReceiver(senderMobile);
+        tr.setTimestamp(LocalDateTime.now());
+        trepo.save(tr);
+
+        return new DtoApiResponse("success","TRANSFER SUCCESSFUL TO",recevername);
     }
 
     public DtoApiResponse delete(String token) {
