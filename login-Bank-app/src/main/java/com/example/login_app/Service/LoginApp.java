@@ -93,7 +93,7 @@ public class LoginApp {
         int row = repo.withdraw(mobile, amount);
         if (row > 0) {
             Double new_balance = repo.balance(mobile);
-            return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",balance);
+            return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",new_balance);
         } else {
             return new DtoApiResponse("error","WITHDRAW FAILED",null);
         }
