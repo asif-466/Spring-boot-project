@@ -1,189 +1,117 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Bank App</title>
-    <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: #fafafa;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          margin: 0;
-        }
-        .container {
-          background: #fff;
-          padding: 20px;
-          border-radius: 10px;
-          width: 350px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          text-align: center;
-        }
-        input, button {
-          width: 90%;
-          padding: 10px;
-          margin: 5px 0;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-        }
-        button {
-          background: #3897f0;
-          color: white;
-          border: none;
-          cursor: pointer;
-        }
-        button:hover {
-          background: #287dc9;
-        }
-        .hidden { display: none; }
-        .response-box {
-          background: #f4f4f4;
-          padding: 10px;
-          margin-top: 10px;
-          border-radius: 5px;
-          white-space: pre-wrap;
-          text-align: left;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-        h2 { color: #333; }
-        .error { color: red; }
-        .success { color: green; }
-    </style>
 </head>
 <body>
+<h2>Bank Application</h2>
 
-<div id="authPage" class="container">
-    <h2>Bank App</h2>
+<h3>Signup</h3>
+<input id="signupMobile" placeholder="Mobile"><br>
+<input id="signupPassword" placeholder="Password" type="password"><br>
+<button onclick="signup()">Signup</button>
 
-    <h3>Signup</h3>
-    <input id="signupName" placeholder="Name" />
-    <input id="signupMobile" placeholder="Mobile" />
-    <input id="signupPassword" type="password" placeholder="Password" />
-    <button onclick="signup()">Signup</button>
-    <p id="signupMsg"></p>
+<h3>Login</h3>
+<input id="loginMobile" placeholder="Mobile"><br>
+<input id="loginPassword" placeholder="Password" type="password"><br>
+<button onclick="login()">Login</button>
 
-    <hr/>
+<h3>Balance</h3>
+<button onclick="balance()">Check Balance</button>
 
-    <h3>Login</h3>
-    <input id="loginMobile" placeholder="Mobile" />
-    <input id="loginPassword" type="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <p id="loginMsg"></p>
-</div>
+<h3>Deposit</h3>
+<input id="depositAmount" placeholder="Amount"><br>
+<button onclick="deposit()">Deposit</button>
 
-<div id="mainPage" class="container hidden">
-    <h2>Welcome to Bank</h2>
-    <button onclick="balance()">Check Balance</button><br/>
+<h3>Withdraw</h3>
+<input id="withdrawAmount" placeholder="Amount"><br>
+<button onclick="withdraw()">Withdraw</button>
 
-    <input id="amount" type="number" placeholder="Amount" />
-    <button onclick="deposit()">Deposit</button>
-    <button onclick="withdraw()">Withdraw</button><br/>
+<h3>Send Money</h3>
+<input id="sendReceiver" placeholder="Receiver Mobile"><br>
+<input id="sendAmount" placeholder="Amount"><br>
+<button onclick="sendMoney()">Send</button>
 
-    <input id="receiver" placeholder="Receiver Mobile" />
-    <input id="sendAmount" type="number" placeholder="Amount" />
-    <button onclick="sendMoney()">Send Money</button><br/>
+<h3>Delete Account</h3>
+<button onclick="deleteAccount()">Delete</button>
 
-    <button onclick="transactionHistory()">Transaction History</button><br/>
+<h3>Transaction History</h3>
+<button onclick="transactionHistory()">Show History</button>
 
-    <button style="background:red;" onclick="deleteAccount()">Delete Account</button>
-    <button onclick="logout()">Logout</button>
-
-    <h3>Response:</h3>
-    <div id="response" class="response-box"></div>
-</div>
+<p id="response"></p>
 
 <script>
-    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
+    const BASE_URL = "http://localhost:8080/Bank";
 
     async function signup() {
-      const name = document.getElementById("signupName").value;
       const mobile = document.getElementById("signupMobile").value;
       const password = document.getElementById("signupPassword").value;
-
-      try {
-        const res = await fetch(`${BASE_URL}/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, mobile, password })
-        });
-
-        const result = await res.json();
-        if (result.status === "success") {
-          document.getElementById("signupMsg").innerText = result.message;
-          document.getElementById("signupMsg").className = "success";
-        } else {
-          document.getElementById("signupMsg").innerText = result.message;
-          document.getElementById("signupMsg").className = "error";
-        }
-      } catch (err) {
-        document.getElementById("signupMsg").innerText = "Signup Failed!";
-        document.getElementById("signupMsg").className = "error";
-      }
+      const res = await fetch(`${BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
     }
 
     async function login() {
       const mobile = document.getElementById("loginMobile").value;
       const password = document.getElementById("loginPassword").value;
-
       const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, password })
       });
-
       const result = await res.json();
-
       if (result.status === "success") {
-        localStorage.setItem("jwtToken", result.data);
-        document.getElementById("loginMsg").innerText = result.message;
-        document.getElementById("loginMsg").className = "success";
-        showMain();
-      } else {
-        document.getElementById("loginMsg").innerText = result.message;
-        document.getElementById("loginMsg").className = "error";
+        localStorage.setItem("jwtToken", result.message);
       }
+      document.getElementById("response").innerText = JSON.stringify(result, null, 2);
     }
 
     async function balance() {
       const res = await fetch(`${BASE_URL}/balance`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
       });
-      const result = await res.json();
-      document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
     }
 
     async function deposit() {
-      const amount = document.getElementById("amount").value;
+      const amount = document.getElementById("depositAmount").value;
       const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
       });
-      const result = await res.json();
-      document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
     }
 
     async function withdraw() {
-      const amount = document.getElementById("amount").value;
+      const amount = document.getElementById("withdrawAmount").value;
       const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
       });
-      const result = await res.json();
-      document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
     }
 
     async function sendMoney() {
-      const receiver = document.getElementById("receiver").value;
+      const receiver = document.getElementById("sendReceiver").value;
       const amount = document.getElementById("sendAmount").value;
       const res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
       });
-      const result = await res.json();
-      document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
+    }
+
+    async function deleteAccount() {
+      const res = await fetch(`${BASE_URL}/delete`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      document.getElementById("response").innerText = JSON.stringify(await res.json(), null, 2);
     }
 
     async function transactionHistory() {
@@ -200,9 +128,13 @@
         let history = "Transaction History:\n";
         result.data.forEach(tx => {
           let line = `Type: ${tx.type}, Amount: ${tx.amount}`;
-          if (tx.type === "SEND" || tx.type === "RECEIVED") {
-            line += `, Receiver: ${tx.receiver}`;
+
+          if (tx.type === "SEND") {
+            line += `, To: ${tx.from}`;
+          } else if (tx.type === "RECEIVED") {
+            line += `, From: ${tx.from}`;
           }
+
           line += `, Time: ${tx.timestamp}`;
           history += `\n${line}`;
         });
@@ -211,29 +143,6 @@
         document.getElementById("response").innerText = result.message;
       }
     }
-
-    async function deleteAccount() {
-      const res = await fetch(`${BASE_URL}/delete`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
-      });
-      const result = await res.json();
-      document.getElementById("response").innerText = result.message;
-    }
-
-    function logout() {
-      localStorage.removeItem("jwtToken");
-      document.getElementById("mainPage").classList.add("hidden");
-      document.getElementById("authPage").classList.remove("hidden");
-      document.getElementById("loginMsg").innerText = "Logged out!";
-      document.getElementById("loginMsg").className = "";
-    }
-
-    function showMain() {
-      document.getElementById("authPage").classList.add("hidden");
-      document.getElementById("mainPage").classList.remove("hidden");
-    }
 </script>
-
 </body>
 </html>
