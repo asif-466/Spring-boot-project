@@ -81,7 +81,7 @@ public class LoginApp {
             t.setMobile(mobile);
             t.setType("DEPOSIT");
             t.setAmount(amount);
-            t.setReceiver(null);
+            t.setFrom(null);
             t.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
             trepo.save(t);
             return new DtoApiResponse("success","DEPOSITED NEW BALANCE:",balance);
@@ -112,7 +112,7 @@ public class LoginApp {
             t.setMobile(mobile);
             t.setType("WITHDRAW");
             t.setAmount(amount);
-            t.setReceiver(null);
+            t.setFrom(null);
             t.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
             trepo.save(t);
             return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",new_balance);
@@ -148,7 +148,7 @@ public class LoginApp {
         ts.setMobile(senderMobile);
         ts.setType("SEND");
         ts.setAmount(amount);
-        ts.setReceiver(receiverMobile);
+        ts.setFrom(receiverMobile);
         ts.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         trepo.save(ts);
 
@@ -156,7 +156,7 @@ public class LoginApp {
         tr.setMobile(receiverMobile);
         tr.setType("RECEIVED");
         tr.setAmount(amount);
-        tr.setReceiver(senderMobile);
+        tr.setFrom(senderMobile);
         tr.setTimestamp(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
         trepo.save(tr);
 

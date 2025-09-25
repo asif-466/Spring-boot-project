@@ -14,17 +14,17 @@ public class Transaction {
     private String mobile;
     private String type;
     private Double amount;
-    private String receiver;
+    private String from;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss", timezone = "Asia/Kolkata")
     private LocalDateTime timestamp;
 
     public Transaction(){}
 
-    public Transaction(String mobile,String type, Double amount,String receiver,LocalDateTime timestamp){
+    public Transaction(String mobile,String type, Double amount,String from,LocalDateTime timestamp){
             this.mobile=mobile;
             this.type=type;
             this.amount=amount;
-            this.receiver=receiver;
+            this.from=from;
             this.timestamp=timestamp;
     }
 
@@ -52,12 +52,12 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public String getReceiver() {
-        return receiver;
+    public String getFrom() {
+        return from;
     }
 
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
+    public void setFrom(String receiver) {
+        this.from = from;
     }
 
     public LocalDateTime getTimestamp() {
