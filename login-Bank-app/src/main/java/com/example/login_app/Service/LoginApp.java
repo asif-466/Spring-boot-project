@@ -173,7 +173,7 @@ public class LoginApp {
             return new DtoApiResponse("error","USER NOT FOUND",null);
         } else {
             repo.delete(user);
-            return new DtoApiResponse("error","ACCOUNT DELETED",user.getName());
+            return new DtoApiResponse("success","ACCOUNT DELETED",user.getName());
         }
     }
 
