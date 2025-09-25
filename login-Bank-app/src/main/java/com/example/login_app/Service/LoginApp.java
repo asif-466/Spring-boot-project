@@ -1,6 +1,8 @@
 package com.example.login_app.Service;
 
 import com.example.login_app.DtoClass.DtoApiResponse;
+import com.example.login_app.Entity.Transaction;
+import com.example.login_app.Reposite.TransactionReposit;
 import com.example.login_app.Util.JwtUtil;
 import com.example.login_app.Reposite.Reposit;
 import com.example.login_app.Entity.UserTable;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,10 +20,14 @@ public class LoginApp {
     public Reposit repo;
 
     @Autowired
+    public  TransactionReposit trepo;
+
+    @Autowired
     public JwtUtil jwtUtil;
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
 
     public DtoApiResponse signup(UserTable user) {
         if (user.getMobile() == null || user.getMobile().length() != 10) {
@@ -69,6 +76,12 @@ public class LoginApp {
         int row = repo.deposit(mobile, amount);
         if (row > 0) {
             Double balance = repo.balance(mobile);
+            Transaction t=new Transaction();
+            t.setMobile(mobile);
+            t.setType("DEPOSIT");
+            t.setAmount(amount);
+            t.setTimestamp(LocalDateTime.now());
+            trepo.save(t);
             return new DtoApiResponse("success","DEPOSITED NEW BALANCE:",balance);
         } else {
             return new DtoApiResponse("error","USER NOT FOUND",null);
@@ -93,6 +106,12 @@ public class LoginApp {
         int row = repo.withdraw(mobile, amount);
         if (row > 0) {
             Double new_balance = repo.balance(mobile);
+            Transaction t=new Transaction();
+            t.setMobile(mobile);
+            t.setType("WITHDRAW");
+            t.setAmount(amount);
+            t.setTimestamp(LocalDateTime.now());
+            trepo.save(t);
             return new DtoApiResponse("success","WITHDRAWAL NEW BALANCE",new_balance);
         } else {
             return new DtoApiResponse("error","WITHDRAW FAILED",null);
@@ -121,6 +140,13 @@ public class LoginApp {
 
         String sendername = repo.name(senderMobile);
         String recevername = repo.name(receiverMobile);
+        Transaction t=new Transaction();
+        t.setMobile(receiverMobile);
+        t.setType("SENT");
+        t.setAmount(amount);
+        t.setReceiver(recevername);
+        t.setTimestamp(LocalDateTime.now());
+        trepo.save(t);
 
         return new DtoApiResponse("success","SENT SUCCESSFUL TO",recevername);
     }
@@ -137,6 +163,18 @@ public class LoginApp {
             repo.delete(user);
             return new DtoApiResponse("error","ACCOUNT DELETED",user.getName());
         }
+    }
+
+    public DtoApiResponse History(String token){
+        if(!jwtUtil.validateToken(token)){
+            return new DtoApiResponse("error","INVALID OR EXPIRE TOKEN",null);
+        }
+        String mobile= jwtUtil.extractMobile(token);
+        List<Transaction> transactions=trepo.findByMobile(mobile);
+        if(transactions.isEmpty()){
+            return new DtoApiResponse("success","NO TRANSACTION FOUND",null);
+        }
+        return new DtoApiResponse("success","TRANSACTION HISTORY",transactions);
     }
 
     public List<UserTable> richUser() {

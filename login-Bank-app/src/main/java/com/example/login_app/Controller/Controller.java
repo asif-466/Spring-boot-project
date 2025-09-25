@@ -56,6 +56,12 @@ public class Controller {
         return service.delete(token);
     }
 
+    @GetMapping("/history")
+    public DtoApiResponse History(@RequestHeader("Authorization") String token){
+        token=token.replace("Bearer ", "");
+        return  service.History(token);
+    }
+
     @GetMapping("/richUser")
     public List<UserTable> richUser() {
         return service.richUser();

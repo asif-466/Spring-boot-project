@@ -45,6 +45,8 @@
           border-radius: 5px;
           white-space: pre-wrap;
           text-align: left;
+          max-height: 200px;
+          overflow-y: auto;
         }
         h2 { color: #333; }
         .error { color: red; }
@@ -83,6 +85,8 @@
     <input id="receiver" placeholder="Receiver Mobile" />
     <input id="sendAmount" type="number" placeholder="Amount" />
     <button onclick="sendMoney()">Send Money</button><br/>
+
+    <button onclick="transactionHistory()">Transaction History</button><br/>
 
     <button style="background:red;" onclick="deleteAccount()">Delete Account</button>
     <button onclick="logout()">Logout</button>
@@ -133,7 +137,6 @@
       const result = await res.json();
 
       if (result.status === "success") {
-        // Save token in localStorage (not shown to user)
         localStorage.setItem("jwtToken", result.data);
         document.getElementById("loginMsg").innerText = result.message;
         document.getElementById("loginMsg").className = "success";
@@ -183,6 +186,23 @@
       document.getElementById("response").innerText = result.message + "\n" + JSON.stringify(result.data, null, 2);
     }
 
+    async function transactionHistory() {
+      const res = await fetch(`${BASE_URL}/transactions`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` }
+      });
+      const result = await res.json();
+
+      if (result.status === "success") {
+        let history = "Transaction History:\n";
+        result.data.forEach(tx => {
+          history += `\nType: ${tx.type}, Amount: ${tx.amount}, Receiver: ${tx.receiver || "-"}, Time: ${tx.timestamp}`;
+        });
+        document.getElementById("response").innerText = history;
+      } else {
+        document.getElementById("response").innerText = result.message;
+      }
+    }
+
     async function deleteAccount() {
       const res = await fetch(`${BASE_URL}/delete`, {
         method: "DELETE",
@@ -208,4 +228,3 @@
 
 </body>
 </html>
-    
