@@ -1,256 +1,498 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banking App</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>InstaBank</title>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: #fafafa;
-          margin: 0;
-          padding: 0;
+        /* ---- Instagram-ish minimal style ---- */
+        :root{
+          --primary:#405de6;
+          --accent:#833ab4;
+          --bg:#fafafa;
+          --card:#ffffff;
+          --muted:#8e8e8e;
+          --danger:#ff3b30;
         }
-        .centered {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
+        *{box-sizing:border-box}
+        body{
+          margin:0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+          background: linear-gradient(180deg, #fff 0%, var(--bg) 100%);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          min-height:100vh;
+          padding:20px;
         }
+
+        .app {
+          width:380px;
+          max-width:95%;
+        }
+
         .card {
-          background: #fff;
-          padding: 25px;
-          border: 1px solid #dbdbdb;
-          border-radius: 10px;
-          width: 300px;
-          text-align: center;
-          margin: 15px auto;
+          background:var(--card);
+          border-radius:12px;
+          box-shadow:0 6px 20px rgba(27,31,35,0.08);
+          padding:16px;
+          margin-bottom:14px;
         }
-        .card input {
-          width: 90%;
-          margin: 8px 0;
-          padding: 10px;
-          border: 1px solid #dbdbdb;
-          border-radius: 5px;
+
+        header.app-header {
+          display:flex;
+          align-items:center;
+          gap:12px;
+          padding:8px 4px;
+          margin-bottom:8px;
         }
-        button {
-          background: #0095f6;
-          color: white;
-          border: none;
-          padding: 10px;
-          margin-top: 10px;
-          border-radius: 5px;
-          cursor: pointer;
-          width: 100%;
+        .logo {
+          height:44px;
+          width:44px;
+          border-radius:10px;
+          background:linear-gradient(45deg,var(--primary),var(--accent));
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:white;
+          font-weight:900;
+          font-size:18px;
+          box-shadow:0 4px 12px rgba(66,103,178,0.15);
         }
-        button:hover { background: #007acc; }
-        .navbar {
-          display: flex;
-          justify-content: space-between;
-          padding: 15px;
-          background: white;
-          border-bottom: 1px solid #dbdbdb;
-          position: sticky;
-          top: 0;
+        h1.app-name { font-size:18px; margin:0; color:#222; }
+
+        .profile-row{ display:flex; gap:12px; align-items:center; margin:8px 0; }
+        .avatar { width:54px; height:54px; border-radius:50%; background:#ddd; display:inline-block; }
+
+        label{ font-size:13px; color:var(--muted); margin-top:8px; display:block; }
+        input[type="text"], input[type="password"], input[type="number"]{
+          width:100%;
+          padding:10px 12px;
+          margin-top:6px;
+          border-radius:8px;
+          border:1px solid #e6e6e6;
+          outline:none;
+          font-size:14px;
+          background:#fafafa;
         }
-        .hidden { display: none; }
-        .container { padding: 20px; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 5px 0; border-bottom: 1px solid #eee; }
+
+        .btn {
+          display:inline-block;
+          width:100%;
+          padding:11px 12px;
+          margin-top:10px;
+          border-radius:10px;
+          border:0;
+          background:linear-gradient(90deg,var(--primary),var(--accent));
+          color:white;
+          font-weight:600;
+          cursor:pointer;
+          box-shadow:0 6px 18px rgba(56,103,214,0.12);
+        }
+        .btn.ghost { background:transparent; color:var(--primary); border:1px solid #e6e6e6; box-shadow:none; }
+        .btn.warn { background:var(--danger); box-shadow:none; }
+
+        .muted { color:var(--muted); font-size:13px; }
+        .small { font-size:12px; color:#666; }
+
+        .row { display:flex; gap:8px; }
+        .col { flex:1; }
+
+        .response {
+          font-family: monospace;
+          font-size:13px;
+          white-space:pre-wrap;
+          background:#fbfbfb;
+          padding:10px;
+          border-radius:8px;
+          color:#222;
+          margin-top:10px;
+          max-height:220px;
+          overflow:auto;
+          border:1px solid #f0f0f0;
+        }
+
+        .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+        .pill { padding:6px 10px; border-radius:20px; border:1px solid #eee; font-size:13px; cursor:pointer; background:#fff; }
+
+        footer.small { text-align:center; color:#aaa; margin-top:6px; font-size:12px; }
     </style>
 </head>
 <body>
+<div class="app">
+    <header class="app-header card">
+        <div class="logo">IB</div>
+        <div>
+            <h1 class="app-name">InstaBank</h1>
+            <div class="small">Simple bank demo</div>
+        </div>
+    </header>
 
-<!-- Login Page -->
-<div id="loginPage" class="centered">
-    <div class="card">
-        <h2>Login</h2>
-        <input type="text" id="loginMobile" placeholder="Mobile Number">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <p>Don’t have an account? <a href="#" onclick="showSignup()">Signup</a></p>
-    </div>
-</div>
+    <!-- AUTH CARD -->
+    <section id="authCard" class="card">
+        <div id="authTabs" style="display:flex;gap:8px;margin-bottom:10px">
+            <button id="tabLogin" class="pill">Login</button>
+            <button id="tabSignup" class="pill">Signup</button>
+        </div>
 
-<!-- Signup Page -->
-<div id="signupPage" class="centered hidden">
-    <div class="card">
-        <h2>Signup</h2>
-        <input type="text" id="signupName" placeholder="Name">
-        <input type="text" id="signupMobile" placeholder="Mobile Number">
-        <input type="password" id="signupPassword" placeholder="Password">
-        <button onclick="signup()">Signup</button>
-        <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
-    </div>
-</div>
+        <div id="loginForm">
+            <label>Mobile</label>
+            <input id="loginMobile" type="text" placeholder="10 digit mobile" />
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="Password" />
+            <button class="btn" onclick="login()">Log in</button>
+            <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn ghost" onclick="fillDemo()">Use demo account</button>
+                <button class="btn ghost" onclick="clearAuth()">Clear</button>
+            </div>
+            <p id="loginMsg" class="muted" style="margin-top:8px"></p>
+        </div>
 
-<!-- Dashboard -->
-<div id="dashboardPage" class="hidden">
-    <div class="navbar">
-        <h2>MyBank</h2>
-        <button onclick="logout()">Logout</button>
-    </div>
-    <div class="container">
-        <div class="card">
-            <h3>Balance</h3>
-            <p id="balance">₹ --</p>
-            <button onclick="getBalance()">Refresh Balance</button>
+        <div id="signupForm" style="display:none">
+            <label>Name</label>
+            <input id="signupName" type="text" placeholder="Your name" />
+            <label>Mobile</label>
+            <input id="signupMobile" type="text" placeholder="10 digit mobile" />
+            <label>Password</label>
+            <input id="signupPassword" type="password" placeholder="Choose password" />
+            <button class="btn" onclick="signup()">Create account</button>
+            <p id="signupMsg" class="muted" style="margin-top:8px"></p>
         </div>
-        <div class="card">
-            <h3>Deposit</h3>
-            <input type="number" id="depositAmount" placeholder="Amount">
-            <button onclick="deposit()">Deposit</button>
+    </section>
+
+    <!-- MAIN DASHBOARD -->
+    <section id="mainCard" class="card" style="display:none;">
+        <div class="profile-row">
+            <div class="avatar" id="avatarProfile"></div>
+            <div>
+                <div id="profileName" style="font-weight:700">User</div>
+                <div id="profileMobile" class="muted small"></div>
+            </div>
         </div>
-        <div class="card">
-            <h3>Withdraw</h3>
-            <input type="number" id="withdrawAmount" placeholder="Amount">
-            <button onclick="withdraw()">Withdraw</button>
+
+        <div style="margin-top:8px">
+            <div class="row">
+                <div class="col">
+                    <div class="muted">Balance</div>
+                    <div id="balanceVal" style="font-size:20px;font-weight:800">--</div>
+                </div>
+                <div style="min-width:120px">
+                    <button class="btn ghost" onclick="getBalance()">Refresh</button>
+                </div>
+            </div>
         </div>
-        <div class="card">
-            <h3>Send Money</h3>
-            <input type="text" id="receiver" placeholder="Receiver Mobile">
-            <input type="number" id="sendAmount" placeholder="Amount">
-            <button onclick="sendMoney()">Send</button>
+
+        <hr style="margin:12px 0;border:none;border-top:1px solid #f0f0f0" />
+
+        <div>
+            <label>Amount</label>
+            <input id="amount" type="number" placeholder="e.g. 100" />
+            <div class="actions">
+                <button class="btn" onclick="deposit()">Deposit</button>
+                <button class="btn ghost" onclick="withdraw()">Withdraw</button>
+            </div>
         </div>
-        <div class="card">
-            <h3>Transaction History</h3>
-            <ul id="history"></ul>
-            <button onclick="getHistory()">Load History</button>
+
+        <div style="margin-top:12px">
+            <label>Send To (mobile)</label>
+            <input id="receiver" type="text" placeholder="Receiver mobile" />
+            <label>Amount</label>
+            <input id="sendAmount" type="number" placeholder="Amount to send" />
+            <div class="actions">
+                <button class="btn" onclick="sendMoney()">Send</button>
+                <button class="btn ghost" onclick="transactionHistory()">History</button>
+            </div>
         </div>
-    </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn ghost" onclick="deleteAccount()">Delete account</button>
+            <button class="btn warn" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="response" class="response" style="margin-top:12px">No actions yet.</div>
+    </section>
+
+    <footer class="small">InstaBank demo — local tokens only</footer>
 </div>
 
 <script>
-    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
+    // Use relative backend path to avoid exposing deploy URL in the file
+    const BASE_URL = "/Bank";
 
-    function getToken() {
-      return localStorage.getItem("token");
+    // UI helpers
+    const $ = id => document.getElementById(id);
+    const show = el => el.style.display = "";
+    const hide = el => el.style.display = "none";
+
+    // auth tabs
+    $('tabLogin').onclick = () => { show($('loginForm')); hide($('signupForm')); };
+    $('tabSignup').onclick = () => { show($('signupForm')); hide($('loginForm')); };
+
+    function setResponse(text) { $('response').innerText = text; }
+    function setProfile(name, mobile) {
+      $('profileName').innerText = name || "User";
+      $('profileMobile').innerText = mobile || "";
+      // avatar background color based on mobile for uniqueness
+      const avatar = $('avatarProfile');
+      if (mobile) {
+        const hue = (mobile.split('').reduce((s,c)=>s+parseInt(c||0,10),0) * 13) % 360;
+        avatar.style.background = `linear-gradient(135deg,hsl(${hue} 70% 55%), hsl(${(hue+40)%360} 60% 45%))`;
+      } else avatar.style.background="#ddd";
     }
 
-    function showSignup() {
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("signupPage").classList.remove("hidden");
+    // token helpers
+    function saveToken(t) { if (!t) return; localStorage.setItem('jwtToken', t); }
+    function getToken() { return localStorage.getItem('jwtToken'); }
+    function clearToken(){ localStorage.removeItem('jwtToken'); }
+
+    function authHeaders(json=false) {
+      const token = getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      if (json) headers['Content-Type'] = 'application/json';
+      return headers;
     }
 
-    function showLogin() {
-      document.getElementById("signupPage").classList.add("hidden");
-      document.getElementById("loginPage").classList.remove("hidden");
-    }
-
-    function showDashboard() {
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("signupPage").classList.add("hidden");
-      document.getElementById("dashboardPage").classList.remove("hidden");
-      getBalance();
-    }
-
-    async function login() {
-      const mobile = document.getElementById("loginMobile").value;
-      const password = document.getElementById("loginPassword").value;
-      const res = await fetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password })
-      });
-      const data = await res.json();
-      if (data.status === "success") {
-        localStorage.setItem("token", data.data);
-        showDashboard();
+    // robust response parser
+    async function parseResponse(res) {
+      if (!res) return { status:'error', message:'No response' };
+      // non-2xx
+      if (!res.ok) {
+        const text = await res.text().catch(()=> '');
+        return { status:'error', message: `HTTP ${res.status} ${text ? '- '+text : ''}`, data: null };
+      }
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try { return await res.json(); } catch(e){ return { status:'error', message:'Invalid JSON' }; }
       } else {
-        alert(data.message);
+        const text = await res.text().catch(()=> '');
+        // backend sometimes returns plain text; treat as message
+        return { status:'success', message: text || 'OK', data: null };
       }
     }
 
-    async function signup() {
-      const name = document.getElementById("signupName").value;
-      const mobile = document.getElementById("signupMobile").value;
-      const password = document.getElementById("signupPassword").value;
-      const res = await fetch(`${BASE_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, mobile, password })
-      });
-      const data = await res.json();
-      alert(data.message);
-      if (data.status === "success") {
-        showLogin();
-      }
-    }
-
-    async function getBalance() {
-      const token = getToken();
-      const res = await fetch(`${BASE_URL}/balance`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      document.getElementById("balance").innerText = `₹ ${data.data}`;
-    }
-
-    async function deposit() {
-      const token = getToken();
-      const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      alert(data.message);
-      getBalance();
-    }
-
-    async function withdraw() {
-      const token = getToken();
-      const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      alert(data.message);
-      getBalance();
-    }
-
-    async function sendMoney() {
-      const token = getToken();
-      const receiver = document.getElementById("receiver").value;
-      const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      alert(data.message);
-      getBalance();
-    }
-
-    async function getHistory() {
-      const token = getToken();
-      const res = await fetch(`${BASE_URL}/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      const historyList = document.getElementById("history");
-      historyList.innerHTML = "";
-      if (data.data) {
-        data.data.forEach(tx => {
-          const li = document.createElement("li");
-          li.textContent = `${tx.type}: ₹${tx.amount} (${tx.timestamp})`;
-          historyList.appendChild(li);
+    // AUTH: signup/login
+    async function signup(){
+      const name = $('signupName').value.trim();
+      const mobile = $('signupMobile').value.trim();
+      const password = $('signupPassword').value;
+      setResponse('Signing up...');
+      try {
+        const res = await fetch(BASE_URL + '/signup', {
+          method:'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({name,mobile,password})
         });
-      } else {
-        historyList.innerHTML = "<li>No transactions</li>";
+        const r = await parseResponse(res);
+        $('signupMsg').innerText = r.message || (r.status === 'success' ? 'Signup ok' : 'Signup failed');
+        if (r.status === 'success') {
+          // auto-fill login
+          $('loginMobile').value = mobile;
+          $('loginPassword').value = password;
+          $('tabLogin').click();
+        }
+      } catch(err){
+        $('signupMsg').innerText = 'Network error';
       }
     }
 
-    function logout() {
-      localStorage.removeItem("token");
-      showLogin();
+    async function login(){
+      const mobile = $('loginMobile').value.trim();
+      const password = $('loginPassword').value;
+      setResponse('Logging in...');
+      try {
+        const res = await fetch(BASE_URL + '/login', {
+          method:'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({mobile,password})
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          // backend now returns token in data
+          saveToken(r.data);
+          $('loginMsg').innerText = 'Logged in';
+          // show main
+          showMainUI(mobile);
+          await getBalance();
+          setResponse('Welcome!');
+        } else {
+          $('loginMsg').innerText = r.message || 'Login failed';
+        }
+      } catch(e){
+        $('loginMsg').innerText = 'Network error';
+      }
     }
 
-    // Auto-login if token exists
-    if (getToken()) {
-      showDashboard();
+    /* Demo helper to quickly test */
+    function fillDemo(){
+      $('loginMobile').value = '6204896395';
+      $('loginPassword').value = '1234';
     }
+    function clearAuth(){
+      $('loginMobile').value = '';
+      $('loginPassword').value = '';
+      $('signupName').value = '';
+      $('signupMobile').value = '';
+      $('signupPassword').value = '';
+      $('loginMsg').innerText = '';
+      $('signupMsg').innerText = '';
+    }
+
+    // MAIN UI helpers
+    function showMainUI(mobile){
+      hide($('authCard'));
+      show($('mainCard'));
+      setProfile('', mobile);
+    }
+    function showAuthUI(){
+      show($('authCard'));
+      hide($('mainCard'));
+    }
+
+    // ACCOUNT actions
+    async function getBalance(){
+      setResponse('Fetching balance...');
+      try {
+        const res = await fetch(BASE_URL + '/balance', {
+          method:'GET',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          // r.data expected to be number
+          $('balanceVal').innerText = (typeof r.data === 'number') ? '₹ ' + r.data.toFixed(2) : r.data;
+        } else {
+          setResponse('Error: ' + (r.message || 'Unable to fetch'));
+        }
+        return r;
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    async function deposit(){
+      const amount = Number($('amount').value || 0);
+      if (!amount || amount <= 0) { setResponse('Enter valid amount'); return; }
+      setResponse('Depositing...');
+      try {
+        const res = await fetch(BASE_URL + '/deposit/' + amount, {
+          method:'PUT',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          await getBalance();
+          setResponse('Deposit successful');
+        } else setResponse('Error: ' + (r.message || 'Deposit failed'));
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    async function withdraw(){
+      const amount = Number($('amount').value || 0);
+      if (!amount || amount <= 0) { setResponse('Enter valid amount'); return; }
+      setResponse('Withdrawing...');
+      try {
+        const res = await fetch(BASE_URL + '/withdraw/' + amount, {
+          method:'PUT',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          await getBalance();
+          setResponse('Withdrawal successful');
+        } else setResponse('Error: ' + (r.message || 'Withdraw failed'));
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    async function sendMoney(){
+      const receiver = $('receiver').value.trim();
+      const amount = Number($('sendAmount').value || 0);
+      if (!receiver || receiver.length !== 10) { setResponse('Enter valid 10-digit receiver'); return; }
+      if (!amount || amount <= 0) { setResponse('Enter valid amount'); return; }
+      setResponse('Sending...');
+      try {
+        const res = await fetch(BASE_URL + '/send/' + receiver + '/' + amount, {
+          method:'PUT',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          await getBalance();
+          setResponse('Sent to ' + (r.data || receiver));
+        } else setResponse('Error: ' + (r.message || 'Send failed'));
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    async function transactionHistory(){
+      setResponse('Loading history...');
+      try {
+        const res = await fetch(BASE_URL + '/history', {
+          method:'GET',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success' && Array.isArray(r.data)) {
+          // friendly formatting
+          const lines = r.data.map(tx=>{
+            // show "From" or "To" depending on type
+            const who = (tx.type === 'RECEIVED') ? ('From: ' + (tx.from || '-')) :
+                        (tx.type === 'SEND' ? ('To: ' + (tx.from || '-')) : '');
+            const time = tx.timestamp || (tx.date || '');
+            return `${tx.type} — ₹${tx.amount} ${who ? '| ' + who : ''} \n  ${time}`;
+          });
+          setResponse(lines.join('\n\n'));
+        } else {
+          setResponse(r.message || 'No transactions');
+        }
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    async function deleteAccount(){
+      if (!confirm('Delete your account? This is irreversible.')) return;
+      setResponse('Deleting account...');
+      try {
+        const res = await fetch(BASE_URL + '/delete', {
+          method:'DELETE',
+          headers: authHeaders(false)
+        });
+        const r = await parseResponse(res);
+        if (r.status === 'success') {
+          clearToken();
+          showAuthUI();
+          setResponse('Account deleted. Bye.');
+        } else {
+          setResponse('Error: ' + (r.message || 'Delete failed'));
+        }
+      } catch(e){
+        setResponse('Network error');
+      }
+    }
+
+    function logout(){
+      clearToken();
+      showAuthUI();
+      setResponse('Logged out');
+    }
+
+    // try to auto-login if token present (best-effort)
+    (async function init(){
+      const token = getToken();
+      if (token) {
+        // show dashboard; we don't know mobile/name until we request balance or other endpoints
+        showMainUI('');
+        await getBalance();
+      } else {
+        showAuthUI();
+      }
+    })();
 </script>
 </body>
 </html>

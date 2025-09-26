@@ -53,7 +53,7 @@ public class LoginApp {
             return new DtoApiResponse("error","INVALID PASSWORD",null);
         }
         String token = jwtUtil.generateToken(mobile);
-        return new DtoApiResponse("success","LOGIN SUCCESSFUL",token);
+        return new DtoApiResponse("success",null,token);
 
     }
 
