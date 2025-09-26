@@ -18,7 +18,8 @@ public class ConfigFile {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index.html", "/static/**").permitAll()
-                        .requestMatchers("/Bank/**").permitAll()
+                        .requestMatchers("/Bank/signup", "Bank/login").permitAll()
+                        .requestMatchers("/Bank/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form ->form.disable())
