@@ -1,251 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banking App</title>
     <style>
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-family: Arial, sans-serif;
           background: #fafafa;
           margin: 0;
           padding: 0;
         }
-
-        /* Navbar */
-        .navbar {
-          background: #fff;
-          border-bottom: 1px solid #dbdbdb;
-          padding: 15px;
-          text-align: center;
-          font-weight: bold;
-          font-size: 20px;
-          color: #262626;
+        .centered {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
         }
-
-        /* Center card */
         .card {
-          max-width: 400px;
-          margin: 40px auto;
           background: #fff;
+          padding: 25px;
           border: 1px solid #dbdbdb;
-          border-radius: 12px;
-          padding: 30px;
+          border-radius: 10px;
+          width: 300px;
           text-align: center;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+          margin: 15px auto;
         }
-
-        .card h2 {
-          margin-bottom: 20px;
-          font-size: 24px;
-          color: #262626;
-        }
-
-        input {
+        .card input {
           width: 90%;
-          padding: 12px;
           margin: 8px 0;
+          padding: 10px;
           border: 1px solid #dbdbdb;
-          border-radius: 8px;
-          font-size: 14px;
+          border-radius: 5px;
         }
-
         button {
-          width: 95%;
-          padding: 12px;
-          margin-top: 12px;
           background: #0095f6;
           color: white;
-          font-weight: bold;
           border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: 0.3s;
-        }
-
-        button:hover {
-          background: #007acc;
-        }
-
-        .link {
-          margin-top: 15px;
-          font-size: 14px;
-          color: #0095f6;
-          cursor: pointer;
-        }
-
-        /* Dashboard */
-        .dashboard {
-          display: none;
-          max-width: 500px;
-          margin: 30px auto;
-          padding: 15px;
-        }
-
-        .action-card {
-          background: #fff;
-          border: 1px solid #dbdbdb;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 20px;
-          text-align: center;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-
-        .history {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-
-        .history-item {
-          border-bottom: 1px solid #eee;
           padding: 10px;
-          text-align: left;
+          margin-top: 10px;
+          border-radius: 5px;
+          cursor: pointer;
+          width: 100%;
         }
+        button:hover { background: #007acc; }
+        .navbar {
+          display: flex;
+          justify-content: space-between;
+          padding: 15px;
+          background: white;
+          border-bottom: 1px solid #dbdbdb;
+          position: sticky;
+          top: 0;
+        }
+        .hidden { display: none; }
+        .container { padding: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 5px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
-<div class="navbar">💳 MyBank</div>
 
-<!-- Login / Signup -->
-<div class="card" id="authCard">
-    <h2 id="authTitle">Login</h2>
-    <input type="text" id="mobile" placeholder="Mobile Number (10 digits)" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-    <div class="link" onclick="toggleSignup()">New here? Sign up</div>
+<!-- Login Page -->
+<div id="loginPage" class="centered">
+    <div class="card">
+        <h2>Login</h2>
+        <input type="text" id="loginMobile" placeholder="Mobile Number">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p>Don’t have an account? <a href="#" onclick="showSignup()">Signup</a></p>
+    </div>
+</div>
+
+<!-- Signup Page -->
+<div id="signupPage" class="centered hidden">
+    <div class="card">
+        <h2>Signup</h2>
+        <input type="text" id="signupName" placeholder="Name">
+        <input type="text" id="signupMobile" placeholder="Mobile Number">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button onclick="signup()">Signup</button>
+        <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+    </div>
 </div>
 
 <!-- Dashboard -->
-<div class="dashboard" id="dashboard">
-    <div class="action-card">
-        <h2>Balance: ₹<span id="balance">0.00</span></h2>
-        <button onclick="getBalance()">Refresh Balance</button>
+<div id="dashboardPage" class="hidden">
+    <div class="navbar">
+        <h2>MyBank</h2>
+        <button onclick="logout()">Logout</button>
     </div>
-
-    <div class="action-card">
-        <h3>Deposit</h3>
-        <input type="number" id="depositAmount" placeholder="Enter amount" />
-        <button onclick="deposit()">Deposit</button>
-    </div>
-
-    <div class="action-card">
-        <h3>Withdraw</h3>
-        <input type="number" id="withdrawAmount" placeholder="Enter amount" />
-        <button onclick="withdraw()">Withdraw</button>
-    </div>
-
-    <div class="action-card">
-        <h3>Send Money</h3>
-        <input type="text" id="receiver" placeholder="Receiver Mobile" />
-        <input type="number" id="sendAmount" placeholder="Enter amount" />
-        <button onclick="sendMoney()">Send</button>
-    </div>
-
-    <div class="action-card history">
-        <h3>Transaction History</h3>
-        <div id="historyList"></div>
+    <div class="container">
+        <div class="card">
+            <h3>Balance</h3>
+            <p id="balance">₹ --</p>
+            <button onclick="getBalance()">Refresh Balance</button>
+        </div>
+        <div class="card">
+            <h3>Deposit</h3>
+            <input type="number" id="depositAmount" placeholder="Amount">
+            <button onclick="deposit()">Deposit</button>
+        </div>
+        <div class="card">
+            <h3>Withdraw</h3>
+            <input type="number" id="withdrawAmount" placeholder="Amount">
+            <button onclick="withdraw()">Withdraw</button>
+        </div>
+        <div class="card">
+            <h3>Send Money</h3>
+            <input type="text" id="receiver" placeholder="Receiver Mobile">
+            <input type="number" id="sendAmount" placeholder="Amount">
+            <button onclick="sendMoney()">Send</button>
+        </div>
+        <div class="card">
+            <h3>Transaction History</h3>
+            <ul id="history"></ul>
+            <button onclick="getHistory()">Load History</button>
+        </div>
     </div>
 </div>
 
 <script>
     const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
-    let token = "";
 
-    function toggleSignup() {
-      const title = document.getElementById("authTitle");
-      const btn = document.querySelector("#authCard button");
-      if (title.innerText === "Login") {
-        title.innerText = "Sign Up";
-        btn.innerText = "Sign Up";
-        btn.setAttribute("onclick", "signup()");
+    function getToken() {
+      return localStorage.getItem("token");
+    }
+
+    function showSignup() {
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("signupPage").classList.remove("hidden");
+    }
+
+    function showLogin() {
+      document.getElementById("signupPage").classList.add("hidden");
+      document.getElementById("loginPage").classList.remove("hidden");
+    }
+
+    function showDashboard() {
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("signupPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.remove("hidden");
+      getBalance();
+    }
+
+    async function login() {
+      const mobile = document.getElementById("loginMobile").value;
+      const password = document.getElementById("loginPassword").value;
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password })
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        localStorage.setItem("token", data.data);
+        showDashboard();
       } else {
-        title.innerText = "Login";
-        btn.innerText = "Login";
-        btn.setAttribute("onclick", "login()");
+        alert(data.message);
       }
     }
 
     async function signup() {
-      const mobile = document.getElementById("mobile").value;
-      const password = document.getElementById("password").value;
+      const name = document.getElementById("signupName").value;
+      const mobile = document.getElementById("signupMobile").value;
+      const password = document.getElementById("signupPassword").value;
       const res = await fetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password, name: "User" })
+        body: JSON.stringify({ name, mobile, password })
       });
       const data = await res.json();
       alert(data.message);
-      if (data.status === "success") toggleSignup();
-    }
-
-    async function login() {
-      const mobile = document.getElementById("mobile").value;
-      const password = document.getElementById("password").value;
-      const res = await fetch(`${BASE_URL}/login?mobile=${mobile}&password=${password}`, { method: "POST" });
-      const data = await res.json();
       if (data.status === "success") {
-        token = data.data;
-        document.getElementById("authCard").style.display = "none";
-        document.getElementById("dashboard").style.display = "block";
-        getBalance();
-        getHistory();
-      } else {
-        alert(data.message);
+        showLogin();
       }
     }
 
     async function getBalance() {
-      const res = await fetch(`${BASE_URL}/balance?token=${token}`);
+      const token = getToken();
+      const res = await fetch(`${BASE_URL}/balance`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
-      if (data.status === "success") {
-        document.getElementById("balance").innerText = data.data;
-      } else {
-        alert(data.message);
-      }
+      document.getElementById("balance").innerText = `₹ ${data.data}`;
     }
 
     async function deposit() {
+      const token = getToken();
       const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(`${BASE_URL}/deposit?token=${token}&amount=${amount}`, { method: "POST" });
+      const res = await fetch(`${BASE_URL}/deposit/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
       alert(data.message);
       getBalance();
-      getHistory();
     }
 
     async function withdraw() {
+      const token = getToken();
       const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(`${BASE_URL}/withdraw?token=${token}&amount=${amount}`, { method: "POST" });
+      const res = await fetch(`${BASE_URL}/withdraw/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
       alert(data.message);
       getBalance();
-      getHistory();
     }
 
     async function sendMoney() {
+      const token = getToken();
       const receiver = document.getElementById("receiver").value;
       const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(`${BASE_URL}/send?token=${token}&receiverMobile=${receiver}&amount=${amount}`, { method: "POST" });
+      const res = await fetch(`${BASE_URL}/send/${receiver}/${amount}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
       alert(data.message);
       getBalance();
-      getHistory();
     }
 
     async function getHistory() {
-      const res = await fetch(`${BASE_URL}/history?token=${token}`);
+      const token = getToken();
+      const res = await fetch(`${BASE_URL}/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const data = await res.json();
-      if (data.status === "success" && data.data) {
-        const list = document.getElementById("historyList");
-        list.innerHTML = "";
-        data.data.forEach(t => {
-          const div = document.createElement("div");
-          div.className = "history-item";
-          div.innerText = `${t.type} ₹${t.amount} (${t.timestamp})`;
-          list.appendChild(div);
+      const historyList = document.getElementById("history");
+      historyList.innerHTML = "";
+      if (data.data) {
+        data.data.forEach(tx => {
+          const li = document.createElement("li");
+          li.textContent = `${tx.type}: ₹${tx.amount} (${tx.timestamp})`;
+          historyList.appendChild(li);
         });
+      } else {
+        historyList.innerHTML = "<li>No transactions</li>";
       }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      showLogin();
+    }
+
+    // Auto-login if token exists
+    if (getToken()) {
+      showDashboard();
     }
 </script>
 </body>
