@@ -1,168 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Bank App</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banking App</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { margin-top: 10px; padding: 8px 15px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        input { margin: 5px 0; padding: 8px; width: 95%; }
-        h2 { color: #333; }
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #fafafa;
+          margin: 0;
+          padding: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+          background: #fff;
+          border-bottom: 1px solid #dbdbdb;
+          padding: 15px;
+          text-align: center;
+          font-weight: bold;
+          font-size: 20px;
+          color: #262626;
+        }
+
+        /* Center card */
+        .card {
+          max-width: 400px;
+          margin: 40px auto;
+          background: #fff;
+          border: 1px solid #dbdbdb;
+          border-radius: 12px;
+          padding: 30px;
+          text-align: center;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h2 {
+          margin-bottom: 20px;
+          font-size: 24px;
+          color: #262626;
+        }
+
+        input {
+          width: 90%;
+          padding: 12px;
+          margin: 8px 0;
+          border: 1px solid #dbdbdb;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+
+        button {
+          width: 95%;
+          padding: 12px;
+          margin-top: 12px;
+          background: #0095f6;
+          color: white;
+          font-weight: bold;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        button:hover {
+          background: #007acc;
+        }
+
+        .link {
+          margin-top: 15px;
+          font-size: 14px;
+          color: #0095f6;
+          cursor: pointer;
+        }
+
+        /* Dashboard */
+        .dashboard {
+          display: none;
+          max-width: 500px;
+          margin: 30px auto;
+          padding: 15px;
+        }
+
+        .action-card {
+          background: #fff;
+          border: 1px solid #dbdbdb;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 20px;
+          text-align: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .history {
+          max-height: 300px;
+          overflow-y: auto;
+        }
+
+        .history-item {
+          border-bottom: 1px solid #eee;
+          padding: 10px;
+          text-align: left;
+        }
     </style>
 </head>
 <body>
-<h1>Bank Application</h1>
+<div class="navbar">💳 MyBank</div>
 
-<!-- Signup -->
-<div class="card">
-    <h2>Signup</h2>
-    <input id="signupName" placeholder="Name">
-    <input id="signupMobile" placeholder="Mobile">
-    <input id="signupPassword" type="password" placeholder="Password">
-    <button onclick="signup()">Signup</button>
-    <p id="signupResult"></p>
-</div>
-
-<!-- Login -->
-<div class="card">
-    <h2>Login</h2>
-    <input id="loginMobile" placeholder="Mobile">
-    <input id="loginPassword" type="password" placeholder="Password">
+<!-- Login / Signup -->
+<div class="card" id="authCard">
+    <h2 id="authTitle">Login</h2>
+    <input type="text" id="mobile" placeholder="Mobile Number (10 digits)" />
+    <input type="password" id="password" placeholder="Password" />
     <button onclick="login()">Login</button>
-    <p id="loginResult"></p>
+    <div class="link" onclick="toggleSignup()">New here? Sign up</div>
 </div>
 
-<!-- Balance -->
-<div class="card">
-    <h2>Check Balance</h2>
-    <button onclick="balance()">Get Balance</button>
-    <p id="balanceResult"></p>
-</div>
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+    <div class="action-card">
+        <h2>Balance: ₹<span id="balance">0.00</span></h2>
+        <button onclick="getBalance()">Refresh Balance</button>
+    </div>
 
-<!-- Deposit -->
-<div class="card">
-    <h2>Deposit</h2>
-    <input id="depositAmount" type="number" placeholder="Amount">
-    <button onclick="deposit()">Deposit</button>
-    <p id="depositResult"></p>
-</div>
+    <div class="action-card">
+        <h3>Deposit</h3>
+        <input type="number" id="depositAmount" placeholder="Enter amount" />
+        <button onclick="deposit()">Deposit</button>
+    </div>
 
-<!-- Withdraw -->
-<div class="card">
-    <h2>Withdraw</h2>
-    <input id="withdrawAmount" type="number" placeholder="Amount">
-    <button onclick="withdraw()">Withdraw</button>
-    <p id="withdrawResult"></p>
-</div>
+    <div class="action-card">
+        <h3>Withdraw</h3>
+        <input type="number" id="withdrawAmount" placeholder="Enter amount" />
+        <button onclick="withdraw()">Withdraw</button>
+    </div>
 
-<!-- Send Money -->
-<div class="card">
-    <h2>Send Money</h2>
-    <input id="receiverMobile" placeholder="Receiver Mobile">
-    <input id="sendAmount" type="number" placeholder="Amount">
-    <button onclick="send()">Send</button>
-    <p id="sendResult"></p>
-</div>
+    <div class="action-card">
+        <h3>Send Money</h3>
+        <input type="text" id="receiver" placeholder="Receiver Mobile" />
+        <input type="number" id="sendAmount" placeholder="Enter amount" />
+        <button onclick="sendMoney()">Send</button>
+    </div>
 
-<!-- Transaction History -->
-<div class="card">
-    <h2>Transaction History</h2>
-    <button onclick="history()">View History</button>
-    <div id="historyResult"></div>
+    <div class="action-card history">
+        <h3>Transaction History</h3>
+        <div id="historyList"></div>
+    </div>
 </div>
 
 <script>
-    const BASE_URL = "http://localhost:8585/Bank"; // apna backend base URL
+    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
     let token = "";
 
-    async function signup() {
-      const res = await fetch(`${BASE_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: document.getElementById("signupName").value,
-          mobile: document.getElementById("signupMobile").value,
-          password: document.getElementById("signupPassword").value
-        })
-      });
-      const data = await res.json();
-      document.getElementById("signupResult").innerText = data.message + " : " + (data.data || "");
-    }
-
-    async function login() {
-      const res = await fetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile: document.getElementById("loginMobile").value,
-          password: document.getElementById("loginPassword").value
-        })
-      });
-      const data = await res.json();
-      if (data.status === "success") {
-        token = data.data; // token save
-        document.getElementById("loginResult").innerText = "Login successful!";
+    function toggleSignup() {
+      const title = document.getElementById("authTitle");
+      const btn = document.querySelector("#authCard button");
+      if (title.innerText === "Login") {
+        title.innerText = "Sign Up";
+        btn.innerText = "Sign Up";
+        btn.setAttribute("onclick", "signup()");
       } else {
-        document.getElementById("loginResult").innerText = data.message;
+        title.innerText = "Login";
+        btn.innerText = "Login";
+        btn.setAttribute("onclick", "login()");
       }
     }
 
-    async function balance() {
-      const res = await fetch(`${BASE_URL}/balance`, {
-        method: "GET",
-        headers: { "Authorization": token }
+    async function signup() {
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+      const res = await fetch(`${BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, password, name: "User" })
       });
       const data = await res.json();
-      document.getElementById("balanceResult").innerText = "Balance: ₹" + data.data;
+      alert(data.message);
+      if (data.status === "success") toggleSignup();
+    }
+
+    async function login() {
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+      const res = await fetch(`${BASE_URL}/login?mobile=${mobile}&password=${password}`, { method: "POST" });
+      const data = await res.json();
+      if (data.status === "success") {
+        token = data.data;
+        document.getElementById("authCard").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        getBalance();
+        getHistory();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function getBalance() {
+      const res = await fetch(`${BASE_URL}/balance?token=${token}`);
+      const data = await res.json();
+      if (data.status === "success") {
+        document.getElementById("balance").innerText = data.data;
+      } else {
+        alert(data.message);
+      }
     }
 
     async function deposit() {
       const amount = document.getElementById("depositAmount").value;
-      const res = await fetch(`${BASE_URL}/deposit?amount=${amount}`, {
-        method: "POST",
-        headers: { "Authorization": token }
-      });
+      const res = await fetch(`${BASE_URL}/deposit?token=${token}&amount=${amount}`, { method: "POST" });
       const data = await res.json();
-      document.getElementById("depositResult").innerText = "New Balance: ₹" + data.data;
+      alert(data.message);
+      getBalance();
+      getHistory();
     }
 
     async function withdraw() {
       const amount = document.getElementById("withdrawAmount").value;
-      const res = await fetch(`${BASE_URL}/withdraw?amount=${amount}`, {
-        method: "POST",
-        headers: { "Authorization": token }
-      });
+      const res = await fetch(`${BASE_URL}/withdraw?token=${token}&amount=${amount}`, { method: "POST" });
       const data = await res.json();
-      document.getElementById("withdrawResult").innerText = "New Balance: ₹" + data.data;
+      alert(data.message);
+      getBalance();
+      getHistory();
     }
 
-    async function send() {
-      const receiver = document.getElementById("receiverMobile").value;
+    async function sendMoney() {
+      const receiver = document.getElementById("receiver").value;
       const amount = document.getElementById("sendAmount").value;
-      const res = await fetch(`${BASE_URL}/send?receiverMobile=${receiver}&amount=${amount}`, {
-        method: "POST",
-        headers: { "Authorization": token }
-      });
+      const res = await fetch(`${BASE_URL}/send?token=${token}&receiverMobile=${receiver}&amount=${amount}`, { method: "POST" });
       const data = await res.json();
-      document.getElementById("sendResult").innerText = data.message + " " + (data.data || "");
+      alert(data.message);
+      getBalance();
+      getHistory();
     }
 
-    async function history() {
-      const res = await fetch(`${BASE_URL}/history`, {
-        method: "GET",
-        headers: { "Authorization": token }
-      });
+    async function getHistory() {
+      const res = await fetch(`${BASE_URL}/history?token=${token}`);
       const data = await res.json();
-      const container = document.getElementById("historyResult");
-      container.innerHTML = "";
-      if (data.data) {
-        data.data.forEach(tx => {
-          container.innerHTML += `<p>${tx.type} ₹${tx.amount} (From: ${tx.from || "N/A"}) at ${tx.timestamp}</p>`;
+      if (data.status === "success" && data.data) {
+        const list = document.getElementById("historyList");
+        list.innerHTML = "";
+        data.data.forEach(t => {
+          const div = document.createElement("div");
+          div.className = "history-item";
+          div.innerText = `${t.type} ₹${t.amount} (${t.timestamp})`;
+          list.appendChild(div);
         });
-      } else {
-        container.innerText = data.message;
       }
     }
 </script>
