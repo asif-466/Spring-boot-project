@@ -100,13 +100,15 @@
       return localStorage.getItem("jwtToken");
     }
 
-    function authHeader() {
+    function authHeader(withJson = false) {
       const token = getToken();
       if (!token) {
         alert("Please login first!");
         throw new Error("No JWT token found");
       }
-      return { "Authorization": `Bearer ${token}` };
+      const headers = { "Authorization": `Bearer ${token}` };
+      if (withJson) headers["Content-Type"] = "application/json";
+      return headers;
     }
 
     async function parseResponse(res) {
