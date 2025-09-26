@@ -1,3 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank App</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #fafafa;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+        .container {
+          background: #fff;
+          padding: 20px;
+          border-radius: 10px;
+          width: 350px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          text-align: center;
+        }
+        input, button {
+          width: 90%;
+          padding: 10px;
+          margin: 5px 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+        }
+        button {
+          background: #3897f0;
+          color: white;
+          border: none;
+          cursor: pointer;
+        }
+        button:hover { background: #287dc9; }
+        .hidden { display: none; }
+        .response-box {
+          background: #f4f4f4;
+          padding: 10px;
+          margin-top: 10px;
+          border-radius: 5px;
+          white-space: pre-wrap;
+          text-align: left;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+        h2 { color: #333; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+
+<div id="authPage" class="container">
+    <h2>Bank App</h2>
+
+    <h3>Signup</h3>
+    <input id="signupName" placeholder="Name" />
+    <input id="signupMobile" placeholder="Mobile" />
+    <input id="signupPassword" type="password" placeholder="Password" />
+    <button onclick="signup()">Signup</button>
+    <p id="signupMsg"></p>
+
+    <hr/>
+
+    <h3>Login</h3>
+    <input id="loginMobile" placeholder="Mobile" />
+    <input id="loginPassword" type="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p id="loginMsg"></p>
+</div>
+
+<div id="mainPage" class="container hidden">
+    <h2>Welcome to Bank</h2>
+    <button onclick="balance()">Check Balance</button><br/>
+
+    <input id="amount" type="number" placeholder="Amount" />
+    <button onclick="deposit()">Deposit</button>
+    <button onclick="withdraw()">Withdraw</button><br/>
+
+    <input id="receiver" placeholder="Receiver Mobile" />
+    <input id="sendAmount" type="number" placeholder="Amount" />
+    <button onclick="sendMoney()">Send Money</button><br/>
+
+    <button onclick="transactionHistory()">Transaction History</button><br/>
+
+    <button style="background:red;" onclick="deleteAccount()">Delete Account</button>
+    <button onclick="logout()">Logout</button>
+
+    <h3>Response:</h3>
+    <div id="response" class="response-box"></div>
+</div>
+
 <script>
     const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
 
@@ -11,7 +106,7 @@
         alert("Please login first!");
         throw new Error("No JWT token found");
       }
-      return { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
+      return { "Authorization": `Bearer ${token}` };
     }
 
     async function parseResponse(res) {
@@ -170,3 +265,6 @@
       document.getElementById("mainPage").classList.remove("hidden");
     }
 </script>
+
+</body>
+</html>
