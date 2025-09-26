@@ -82,32 +82,38 @@
 <body>
 <div class="container">
     <h2>Bank App</h2>
-    <div id="usernameDisplay"></div> <!-- 👤 Username show hoga yahan -->
+    <div id="usernameDisplay"></div>
 
-    <input type="text" id="name" placeholder="Full Name">
-    <input type="text" id="mobile" placeholder="Mobile (10 digits)">
-    <input type="password" id="password" placeholder="Password">
+    <!-- 🔑 Authentication Section -->
+    <div id="authSection">
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="text" id="mobile" placeholder="Mobile (10 digits)">
+        <input type="password" id="password" placeholder="Password">
 
-    <button onclick="signup()">Sign Up</button>
-    <button onclick="login()">Login</button>
-    <hr>
+        <button onclick="signup()">Sign Up</button>
+        <button onclick="login()">Login</button>
+    </div>
 
-    <button onclick="getBalance()">Check Balance</button>
-    <input type="number" id="depositAmount" placeholder="Deposit Amount">
-    <button onclick="deposit()">Deposit</button>
+    <!-- 💰 Banking App Section (hidden until login) -->
+    <div id="appSection" style="display:none;">
+        <button onclick="getBalance()">Check Balance</button>
 
-    <input type="number" id="withdrawAmount" placeholder="Withdraw Amount">
-    <button onclick="withdraw()">Withdraw</button>
+        <input type="number" id="depositAmount" placeholder="Deposit Amount">
+        <button onclick="deposit()">Deposit</button>
 
-    <input type="text" id="receiverMobile" placeholder="Receiver Mobile">
-    <input type="number" id="sendAmount" placeholder="Send Amount">
-    <button onclick="sendMoney()">Send Money</button>
+        <input type="number" id="withdrawAmount" placeholder="Withdraw Amount">
+        <button onclick="withdraw()">Withdraw</button>
 
-    <button onclick="getHistory()">Transaction History</button>
-    <hr>
+        <input type="text" id="receiverMobile" placeholder="Receiver Mobile">
+        <input type="number" id="sendAmount" placeholder="Send Amount">
+        <button onclick="sendMoney()">Send Money</button>
 
-    <button onclick="logout()">🚪 Logout</button>
-    <button class="delete-btn" onclick="deleteAccount()">🗑️ Delete Account</button>
+        <button onclick="getHistory()">Transaction History</button>
+        <hr>
+
+        <button onclick="logout()">🚪 Logout</button>
+        <button class="delete-btn" onclick="deleteAccount()">🗑️ Delete Account</button>
+    </div>
 
     <div id="output" class="output"></div>
 </div>
@@ -156,12 +162,14 @@
       if (data.status === "success" && data.data) {
         localStorage.setItem("jwtToken", data.data);
 
-        // 👤 Username set karo (agar name nahi aata backend se, to mobile use karo)
         if (data.name) {
           setUsername(data.name);
         } else {
           setUsername(mobile);
         }
+
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("appSection").style.display = "block";
 
         showMessage("✅ Login successful!", "success");
       } else {
@@ -183,6 +191,7 @@
 
       if (res.status === 403) {
         showMessage("❌ Session expired. Please login again.", "error");
+        logout();
         return;
       }
 
@@ -269,6 +278,7 @@
 
       if (res.status === 403) {
         showMessage("❌ Session expired. Please login again.", "error");
+        logout();
         return;
       }
 
@@ -290,6 +300,8 @@
     function logout() {
       localStorage.removeItem("jwtToken");
       document.getElementById("usernameDisplay").innerText = "";
+      document.getElementById("authSection").style.display = "block";
+      document.getElementById("appSection").style.display = "none";
       showMessage("🚪 Logged out successfully!", "success");
     }
 
@@ -310,8 +322,7 @@
       });
       const data = await res.json();
       if (data.status === "success") {
-        localStorage.removeItem("jwtToken");
-        document.getElementById("usernameDisplay").innerText = "";
+        logout();
         showMessage("🗑️ Account deleted successfully!", "success");
       } else {
         showMessage("❌ " + data.message, "error");
