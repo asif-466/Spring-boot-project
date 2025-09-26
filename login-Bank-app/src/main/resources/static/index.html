@@ -5,7 +5,7 @@
     <title>Bank App</title>
     <style>
         body {
-          font-family: Arial, sans-serif;
+          font-family: 'Segoe UI', Tahoma, sans-serif;
           background-color: #fafafa;
           display: flex;
           justify-content: center;
@@ -13,50 +13,58 @@
           height: 100vh;
         }
         .container {
-          width: 350px;
-          padding: 20px;
+          width: 360px;
+          padding: 25px;
           background: #fff;
           border: 1px solid #dbdbdb;
-          border-radius: 10px;
+          border-radius: 15px;
           text-align: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         h2 {
-          font-family: "Segoe UI", Tahoma, sans-serif;
+          font-family: 'Segoe UI', sans-serif;
           margin-bottom: 20px;
+          color: #262626;
         }
         input {
           width: 90%;
-          padding: 10px;
+          padding: 12px;
           margin: 8px 0;
           border: 1px solid #dbdbdb;
-          border-radius: 5px;
+          border-radius: 8px;
           font-size: 14px;
+          outline: none;
+          background: #fafafa;
         }
         button {
           width: 95%;
-          padding: 10px;
+          padding: 12px;
           margin: 8px 0;
           border: none;
-          border-radius: 5px;
-          background-color: #3897f0;
+          border-radius: 8px;
+          background-color: #0095f6;
           color: #fff;
           font-weight: bold;
           cursor: pointer;
+          font-size: 14px;
         }
         button:hover {
-          background-color: #287dcf;
+          background-color: #007ac1;
         }
         .output {
           margin-top: 15px;
-          padding: 10px;
+          padding: 12px;
           border: 1px solid #eee;
           background: #fafafa;
-          border-radius: 5px;
+          border-radius: 8px;
           font-size: 14px;
           text-align: left;
           max-height: 200px;
           overflow-y: auto;
+          color: #333;
         }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -86,10 +94,11 @@
 </div>
 
 <script>
-    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank"; // 🔒 url message me show nahi hoga
+    const BASE_URL = "https://spring-boot-app-fl4i.onrender.com/Bank";
 
-    function showMessage(msg) {
-      document.getElementById("output").innerText = msg;
+    function showMessage(msg, type = "") {
+      const output = document.getElementById("output");
+      output.innerHTML = `<span class="${type}">${msg}</span>`;
     }
 
     async function signup() {
@@ -102,7 +111,11 @@
         body: JSON.stringify({mobile, password, name: "User"})
       });
       const data = await res.json();
-      showMessage(JSON.stringify(data, null, 2));
+      if (data.status === "success") {
+        showMessage("✅ Signup successful!", "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
+      }
     }
 
     async function login() {
@@ -117,10 +130,10 @@
       const data = await res.json();
 
       if (data.status === "success" && data.data) {
-        localStorage.setItem("jwtToken", data.data); // ✅ save raw JWT
-        showMessage("Login successful ✅");
+        localStorage.setItem("jwtToken", data.data);
+        showMessage("✅ Login successful!", "success");
       } else {
-        showMessage("Login failed ❌: " + data.message);
+        showMessage("❌ " + data.message, "error");
       }
     }
 
@@ -137,12 +150,16 @@
       });
 
       if (res.status === 403) {
-        showMessage("❌ Session expired. Please login again.");
+        showMessage("❌ Session expired. Please login again.", "error");
         return;
       }
 
       const data = await res.json();
-      showMessage("Balance: ₹" + data.data);
+      if (data.status === "success") {
+        showMessage(`💰 Balance: ₹${data.data}`, "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
+      }
     }
 
     async function deposit() {
@@ -158,7 +175,11 @@
         headers: {"Authorization": "Bearer " + token}
       });
       const data = await res.json();
-      showMessage(JSON.stringify(data, null, 2));
+      if (data.status === "success") {
+        showMessage(`✅ ₹${amount} Deposited. New Balance: ₹${data.data}`, "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
+      }
     }
 
     async function withdraw() {
@@ -174,7 +195,11 @@
         headers: {"Authorization": "Bearer " + token}
       });
       const data = await res.json();
-      showMessage(JSON.stringify(data, null, 2));
+      if (data.status === "success") {
+        showMessage(`✅ ₹${amount} Withdrawn. New Balance: ₹${data.data}`, "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
+      }
     }
 
     async function sendMoney() {
@@ -191,7 +216,11 @@
         headers: {"Authorization": "Bearer " + token}
       });
       const data = await res.json();
-      showMessage(JSON.stringify(data, null, 2));
+      if (data.status === "success") {
+        showMessage(`✅ Sent ₹${amount} to ${receiver}`, "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
+      }
     }
 
     async function getHistory() {
@@ -207,15 +236,20 @@
       });
 
       if (res.status === 403) {
-        showMessage("❌ Session expired. Please login again.");
+        showMessage("❌ Session expired. Please login again.", "error");
         return;
       }
 
       const data = await res.json();
-      if (data.data) {
-        showMessage("Transactions:\n" + JSON.stringify(data.data, null, 2));
+      if (data.status === "success" && data.data) {
+        let list = "<b>📜 Transactions:</b><br><ul>";
+        data.data.forEach(tx => {
+          list += `<li>${tx.type} ₹${tx.amount} ${tx.receiver ? " → " + tx.receiver : ""} (${tx.timestamp})</li>`;
+        });
+        list += "</ul>";
+        showMessage(list);
       } else {
-        showMessage("No transactions found.");
+        showMessage("No transactions found.", "error");
       }
     }
 </script>
