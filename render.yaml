@@ -3,8 +3,8 @@ services:
     name: spring-boot-app
     env: java
     plan: free
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/*.jar"
+    buildCommand: "./mvnw -f login-Bank-app/pom.xml clean package -DskipTests"
+    startCommand: "java -jar login-Bank-app/target/*.jar"
     envVars:
       - key: JAVA_VERSION
         value: 17
