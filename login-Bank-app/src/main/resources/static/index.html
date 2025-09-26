@@ -26,6 +26,12 @@
           margin-bottom: 20px;
           color: #262626;
         }
+        #usernameDisplay {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 15px;
+          color: #0095f6;
+        }
         input {
           width: 90%;
           padding: 12px;
@@ -51,6 +57,12 @@
         button:hover {
           background-color: #007ac1;
         }
+        .delete-btn {
+          background-color: #e63946;
+        }
+        .delete-btn:hover {
+          background-color: #c92a35;
+        }
         .output {
           margin-top: 15px;
           padding: 12px;
@@ -70,6 +82,9 @@
 <body>
 <div class="container">
     <h2>Bank App</h2>
+    <div id="usernameDisplay"></div> <!-- 👤 Username show hoga yahan -->
+
+    <input type="text" id="name" placeholder="Full Name">
     <input type="text" id="mobile" placeholder="Mobile (10 digits)">
     <input type="password" id="password" placeholder="Password">
 
@@ -89,6 +104,10 @@
     <button onclick="sendMoney()">Send Money</button>
 
     <button onclick="getHistory()">Transaction History</button>
+    <hr>
+
+    <button onclick="logout()">🚪 Logout</button>
+    <button class="delete-btn" onclick="deleteAccount()">🗑️ Delete Account</button>
 
     <div id="output" class="output"></div>
 </div>
@@ -101,18 +120,23 @@
       output.innerHTML = `<span class="${type}">${msg}</span>`;
     }
 
+    function setUsername(nameOrMobile) {
+      document.getElementById("usernameDisplay").innerText = "👤 Welcome, " + nameOrMobile;
+    }
+
     async function signup() {
+      const name = document.getElementById("name").value;
       const mobile = document.getElementById("mobile").value;
       const password = document.getElementById("password").value;
 
       const res = await fetch(BASE_URL + "/signup", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({mobile, password, name: "User"})
+        body: JSON.stringify({mobile, password, name})
       });
       const data = await res.json();
       if (data.status === "success") {
-        showMessage("✅ Signup successful!", "success");
+        showMessage("✅ Signup successful! Please login.", "success");
       } else {
         showMessage("❌ " + data.message, "error");
       }
@@ -131,6 +155,14 @@
 
       if (data.status === "success" && data.data) {
         localStorage.setItem("jwtToken", data.data);
+
+        // 👤 Username set karo (agar name nahi aata backend se, to mobile use karo)
+        if (data.name) {
+          setUsername(data.name);
+        } else {
+          setUsername(mobile);
+        }
+
         showMessage("✅ Login successful!", "success");
       } else {
         showMessage("❌ " + data.message, "error");
@@ -244,12 +276,45 @@
       if (data.status === "success" && data.data) {
         let list = "<b>📜 Transactions:</b><br><ul>";
         data.data.forEach(tx => {
-          list += `<li>${tx.type} ₹${tx.amount} ${tx.receiver ? " → " + tx.receiver : ""} (${tx.timestamp})</li>`;
+          list += `<li>${tx.type} ₹${tx.amount}
+            ${tx.receiverName ? " → " + tx.receiverName : (tx.receiver ? " → " + tx.receiver : "")}
+            (${tx.timestamp})</li>`;
         });
         list += "</ul>";
         showMessage(list);
       } else {
         showMessage("No transactions found.", "error");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("jwtToken");
+      document.getElementById("usernameDisplay").innerText = "";
+      showMessage("🚪 Logged out successfully!", "success");
+    }
+
+    async function deleteAccount() {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      if (!confirm("⚠️ Are you sure you want to delete your account? This cannot be undone.")) {
+        return;
+      }
+
+      const res = await fetch(BASE_URL + "/delete", {
+        method: "DELETE",
+        headers: {"Authorization": "Bearer " + token}
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        localStorage.removeItem("jwtToken");
+        document.getElementById("usernameDisplay").innerText = "";
+        showMessage("🗑️ Account deleted successfully!", "success");
+      } else {
+        showMessage("❌ " + data.message, "error");
       }
     }
 </script>
