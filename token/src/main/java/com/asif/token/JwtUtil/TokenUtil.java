@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-
 @Component
 public class TokenUtil {
     private final Key secret;
@@ -21,14 +20,12 @@ public class TokenUtil {
                      @Value("${jwt.expiration}") long expirationTime) {
         this.secret = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationTime = expirationTime;
-
     }
 
-    public String generateToken(String mobile,String role) {
-
+    public String generateToken(String mobile, String role) {
         return Jwts.builder()
                 .setSubject(mobile)
-                .claim("role",role)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(secret, SignatureAlgorithm.HS256)
@@ -41,15 +38,19 @@ public class TokenUtil {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secret).build()
+                .parseClaimsJws(token).getBody()
+                .get("role", String.class);
+    }
+
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secret).build()
-                    .parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token);
             return true;
         } catch (JwtException e) {
             return false;
         }
     }
-
 }

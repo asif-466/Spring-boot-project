@@ -6,6 +6,7 @@ import com.example.login_app.Service.LoginApp;
 import com.example.login_app.Entity.UserTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -27,39 +28,39 @@ public class Controller {
     }
 
     @GetMapping("/balance")
-    public DtoApiResponse balance(@RequestHeader("Authorization") String token) {
-        token = token.replace("Bearer ", "");
-        return service.balance(token);
+    public DtoApiResponse balance(Authentication authentication) {
+        String mobile=authentication.getName();
+        return service.balance(mobile);
     }
 
     @PutMapping("/deposit/{amount}")
-    public DtoApiResponse deposit(@RequestHeader("Authorization") String token, @PathVariable double amount) {
-        token = token.replace("Bearer ", "");
-        return service.deposit(token, amount);
+    public DtoApiResponse deposit(Authentication authentication, @PathVariable double amount) {
+        String mobile=authentication.getName();
+        return service.deposit(mobile, amount);
     }
 
     @PutMapping("/withdraw/{amount}")
-    public DtoApiResponse withdraw(@RequestHeader("Authorization") String token, @PathVariable double amount) {
-        token = token.replace("Bearer ", "");
-        return service.withdraw(token, amount);
+    public DtoApiResponse withdraw(Authentication authentication, @PathVariable double amount) {
+        String mobile=authentication.getName();
+        return service.withdraw(mobile, amount);
     }
 
     @PutMapping("/send/{receiver}/{amount}")
-    public DtoApiResponse send(@RequestHeader("Authorization") String token, @PathVariable String receiver, @PathVariable double amount) {
-        token = token.replace("Bearer ", "");
-        return service.send(token, receiver, amount);
+    public DtoApiResponse send(Authentication authentication, @PathVariable String receiver, @PathVariable double amount) {
+        String mobile=authentication.getName();
+        return service.send(mobile, receiver, amount);
     }
 
     @DeleteMapping("/delete")
-    public DtoApiResponse delete(@RequestHeader("Authorization") String token) {
-        token = token.replace("Bearer ", "");
-        return service.delete(token);
+    public DtoApiResponse delete(Authentication authentication) {
+        String mobile=authentication.getName();
+        return service.delete(mobile);
     }
 
     @GetMapping("/history")
-    public DtoApiResponse History(@RequestHeader("Authorization") String token){
-        token=token.replace("Bearer ", "");
-        return  service.History(token);
+    public DtoApiResponse History(Authentication authentication){
+        String mobile=authentication.getName();
+        return  service.History(mobile);
     }
 
     @GetMapping("/richUser")

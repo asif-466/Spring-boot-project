@@ -2,7 +2,6 @@ package com.asif.token.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.engine.jdbc.Size;
 
 @Entity
 @Table(name = "TokenUser")

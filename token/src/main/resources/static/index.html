@@ -1,5 +1,5 @@
-```html
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -29,6 +29,7 @@
 <h1>Token Management App</h1>
 
 <!-- Signup & Login -->
+
 <div id="authSection" class="card">
     <h2>Signup</h2>
     <form onsubmit="signup(event)">
@@ -37,8 +38,8 @@
         <input type="password" id="signupPassword" placeholder="Password" required>
         <select id="signupRole" required>
             <option value="">Select Role</option>
-            <option value="OWNER">Owner</option>
-            <option value="CUSTOMER">Customer</option>
+            <option value="ROLE_OWNER">Owner</option>
+            <option value="ROLE_CUSTOMER">Customer</option>
         </select>
         <button type="submit">Signup</button>
     </form>
@@ -54,6 +55,7 @@
 </div>
 
 <!-- After Login Section -->
+
 <div id="appSection" class="hidden">
     <!-- Create Shop -->
     <div class="card">
@@ -61,9 +63,9 @@
         <form onsubmit="createShop(event)">
             <select id="shopType" required>
                 <option value="">Select Shop Type</option>
-                <option value="Healthcare">Healthcare (Hospital/Clinic/Pharmacy)</option>
+                <option value="Healthcare">Healthcare</option>
                 <option value="Restaurant">Restaurant</option>
-                <option value="Salon">Salon / Barber / Parlour</option>
+                <option value="Salon">Salon / Barber</option>
                 <option value="Bank">Bank</option>
                 <option value="Post Office">Post Office</option>
                 <option value="Government Office">Government Office</option>
@@ -77,22 +79,21 @@
         <p id="createShopResult"></p>
     </div>
 
+    ```
     <!-- Take Token -->
     <div class="card">
         <h2>Take Token</h2>
-        <!-- Step 1: Select Shop Type -->
         <select id="filterShopType" onchange="filterByType()">
             <option value="">Select Shop Type</option>
-            <option value="Healthcare">Healthcare (Hospital/Clinic/Pharmacy)</option>
+            <option value="Healthcare">Healthcare</option>
             <option value="Restaurant">Restaurant</option>
-            <option value="Salon">Salon / Barber / Parlour</option>
+            <option value="Salon">Salon / Barber</option>
             <option value="Bank">Bank</option>
             <option value="Post Office">Post Office</option>
             <option value="Government Office">Government Office</option>
             <option value="Other">Other</option>
         </select>
 
-        <!-- Step 2: Select Shop (filtered) -->
         <select id="shopDropdown" onchange="showShopDetails()">
             <option value="">Select Shop</option>
         </select>
@@ -101,6 +102,22 @@
         <button onclick="takeToken()">Take Token</button>
         <p id="takeResult"></p>
     </div>
+
+    <!-- My Tokens -->
+    <div class="card">
+        <h2>My Tokens</h2>
+        <button onclick="showMyTokens()">Show My Tokens</button>
+        <div id="myTokensResult"></div>
+    </div>
+
+    <!-- My Shops -->
+    <div class="card">
+        <h2>My Shops</h2>
+        <button onclick="showMyShops()">Show My Shops</button>
+        <div id="myShopsResult"></div>
+    </div>
+    ```
+
 </div>
 
 <script>
@@ -177,10 +194,12 @@
 
     // Load All Shops
     function loadShops() {
-      fetch("http://localhost:8080/Token/getAllShops")
+      fetch("http://localhost:8080/Token/getAllShops", {
+        headers: { "Authorization": "Bearer " + authToken }
+      })
       .then(res => res.json())
       .then(data => {
-        allShops = data.data;
+        allShops = data.data || [];
       });
     }
 
@@ -190,21 +209,7 @@
       const dropdown = document.getElementById("shopDropdown");
       dropdown.innerHTML = '<option value="">Select Shop</option>';
 
-      let filtered = [];
-      if (type === "Healthcare") {
-        filtered = allShops.filter(s =>
-          s.shopType.includes("Hospital") ||
-          s.shopType.includes("Clinic") ||
-          s.shopType.includes("Pharmacy")
-        );
-      } else if (type === "Salon") {
-        filtered = allShops.filter(s =>
-          s.shopType.includes("Salon") ||
-          s.shopType.includes("Barber")
-        );
-      } else {
-        filtered = type ? allShops.filter(s => s.shopType === type) : allShops;
-      }
+      let filtered = type ? allShops.filter(s => s.shopType === type) : allShops;
 
       filtered.forEach(shop => {
         const option = document.createElement("option");
@@ -218,14 +223,16 @@
     function showShopDetails() {
       selectedShopId = document.getElementById("shopDropdown").value;
       if (!selectedShopId) return;
-      fetch(`http://localhost:8080/Token/getShop/${selectedShopId}`)
+      fetch(`http://localhost:8080/Token/getShop/${selectedShopId}`, {
+        headers: { "Authorization": "Bearer " + authToken }
+      })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
           document.getElementById("shopDetails").innerText =
             "📍 " + data.data.shopName +
             " | Current Token: " + data.data.currentToken +
-            " | Time/Customer: " + data.data.timePerCustomer + " mins";
+            " | Total Wait Time: " + data.data.estimatedWaitTime + " mins";
         } else {
           document.getElementById("shopDetails").innerText = "❌ " + data.message;
         }
@@ -235,7 +242,10 @@
     // Take Token
     function takeToken() {
       if (!selectedShopId) { alert("Please select a shop first!"); return; }
-      fetch(`http://localhost:8080/Token/takeToken/${selectedShopId}`, { method: "POST" })
+      fetch(`http://localhost:8080/Token/takeToken/${selectedShopId}`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + authToken }
+      })
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
@@ -249,7 +259,77 @@
         }
       });
     }
+
+    // Show My Tokens
+    function showMyTokens() {
+      fetch("http://localhost:8080/Token/showMyTokens", {
+        headers: { "Authorization": "Bearer " + authToken }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("myTokensResult");
+        container.innerHTML = "";
+
+        if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
+          data.data.forEach(t => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "10px";
+            div.style.padding = "10px";
+            div.style.background = "#eef";
+            div.style.borderRadius = "5px";
+
+            div.innerHTML = `
+              🏪 <b>${t.shopName}</b> (${t.shopType}) <br>
+              📍 Address: ${t.address} <br>
+              🎟️ Your Token No: ${t.yourTokenNo} <br>
+              ⏳ Wait Time: ${t.estimatedWaitTime} mins
+            `;
+            container.appendChild(div);
+          });
+        } else {
+          container.innerText = "❌ " + (data.message || "No tokens found");
+        }
+      })
+      .catch(err => {
+        document.getElementById("myTokensResult").innerText = "⚠️ Error fetching tokens: " + err;
+      });
+    }
+
+    // Show My Shops
+    function showMyShops() {
+      fetch("http://localhost:8080/Token/myShops", {
+        headers: { "Authorization": "Bearer " + authToken }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("myShopsResult");
+        container.innerHTML = "";
+
+        if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
+          data.data.forEach(shop => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "10px";
+            div.style.padding = "10px";
+            div.style.background = "#eef";
+            div.style.borderRadius = "5px";
+
+            div.innerHTML = `
+              🏪 <b>${shop.shopName}</b> (${shop.shopType}) <br>
+              📍 Address: ${shop.address} <br>
+              🎟️ Current Token: ${shop.currentToken} <br>
+              ⏳ Time per Customer: ${shop.timePerCustomer} mins
+            `;
+            container.appendChild(div);
+          });
+        } else {
+          container.innerText = "❌ " + (data.message || "No shops found");
+        }
+      })
+      .catch(err => {
+        document.getElementById("myShopsResult").innerText = "⚠️ Error fetching shops: " + err;
+      });
+    }
 </script>
+
 </body>
 </html>
-```
