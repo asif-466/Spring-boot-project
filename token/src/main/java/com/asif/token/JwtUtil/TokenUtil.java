@@ -6,7 +6,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -22,10 +21,10 @@ public class TokenUtil {
         this.expirationTime = expirationTime;
     }
 
-    public String generateToken(String mobile, String role) {
+
+    public String generateToken(String mobile) {
         return Jwts.builder()
                 .setSubject(mobile)
-                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(secret, SignatureAlgorithm.HS256)
@@ -38,13 +37,6 @@ public class TokenUtil {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
-    public String extractRole(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secret).build()
-                .parseClaimsJws(token).getBody()
-                .get("role", String.class);
-    }
-
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token);
@@ -53,4 +45,6 @@ public class TokenUtil {
             return false;
         }
     }
+
+
 }

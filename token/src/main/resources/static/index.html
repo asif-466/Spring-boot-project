@@ -1,34 +1,49 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Token Management App</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
+        body {
+          font-family: Arial, sans-serif;
+          background: #f4f6f9;
+          margin: 20px;
+        }
         h1 { text-align: center; }
         .card {
-          background: #fff; padding: 20px; margin: 20px auto;
-          border-radius: 10px; max-width: 400px;
+          background: #fff;
+          padding: 20px;
+          margin: 20px auto;
+          border-radius: 10px;
+          max-width: 400px;
           box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .hidden { display: none; }
         input, select, button {
-          width: 100%; padding: 10px; margin: 8px 0;
-          border-radius: 5px; border: 1px solid #ccc;
+          width: 100%;
+          padding: 10px;
+          margin: 8px 0;
+          border-radius: 5px;
+          border: 1px solid #ccc;
         }
-        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button {
+          background: #007bff;
+          color: white;
+          border: none;
+          cursor: pointer;
+        }
         button:hover { background: #0056b3; }
         #shopDetails {
-          margin-top: 10px; padding: 10px;
-          background: #eef; border-radius: 5px;
+          margin-top: 10px;
+          padding: 10px;
+          background: #eef;
+          border-radius: 5px;
         }
     </style>
 </head>
 <body>
 <h1>Token Management App</h1>
 
-<!-- Signup & Login -->
 
 <div id="authSection" class="card">
     <h2>Signup</h2>
@@ -36,11 +51,6 @@
         <input type="text" id="signupName" placeholder="Name" required>
         <input type="text" id="signupMobile" placeholder="Mobile" required>
         <input type="password" id="signupPassword" placeholder="Password" required>
-        <select id="signupRole" required>
-            <option value="">Select Role</option>
-            <option value="ROLE_OWNER">Owner</option>
-            <option value="ROLE_CUSTOMER">Customer</option>
-        </select>
         <button type="submit">Signup</button>
     </form>
     <p id="signupResult"></p>
@@ -54,10 +64,9 @@
     <p id="loginResult"></p>
 </div>
 
-<!-- After Login Section -->
 
 <div id="appSection" class="hidden">
-    <!-- Create Shop -->
+
     <div class="card">
         <h2>Create Shop</h2>
         <form onsubmit="createShop(event)">
@@ -79,8 +88,6 @@
         <p id="createShopResult"></p>
     </div>
 
-    ```
-    <!-- Take Token -->
     <div class="card">
         <h2>Take Token</h2>
         <select id="filterShopType" onchange="filterByType()">
@@ -93,31 +100,27 @@
             <option value="Government Office">Government Office</option>
             <option value="Other">Other</option>
         </select>
-
         <select id="shopDropdown" onchange="showShopDetails()">
             <option value="">Select Shop</option>
         </select>
-
         <div id="shopDetails"></div>
         <button onclick="takeToken()">Take Token</button>
         <p id="takeResult"></p>
     </div>
 
-    <!-- My Tokens -->
+
     <div class="card">
         <h2>My Tokens</h2>
         <button onclick="showMyTokens()">Show My Tokens</button>
         <div id="myTokensResult"></div>
     </div>
 
-    <!-- My Shops -->
+
     <div class="card">
         <h2>My Shops</h2>
         <button onclick="showMyShops()">Show My Shops</button>
         <div id="myShopsResult"></div>
     </div>
-    ```
-
 </div>
 
 <script>
@@ -125,17 +128,16 @@
     let selectedShopId = "";
     let allShops = [];
 
-    // Signup
     function signup(event) {
       event.preventDefault();
       const data = {
         name: document.getElementById("signupName").value,
         mobile: document.getElementById("signupMobile").value,
-        password: document.getElementById("signupPassword").value,
-        role: document.getElementById("signupRole").value
+        password: document.getElementById("signupPassword").value
       };
       fetch("http://localhost:8080/Token/signup", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
       .then(res => res.json())
@@ -144,7 +146,6 @@
       });
     }
 
-    // Login
     function login(event) {
       event.preventDefault();
       const data = {
@@ -152,7 +153,8 @@
         password: document.getElementById("loginPassword").value
       };
       fetch("http://localhost:8080/Token/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       })
       .then(res => res.json())
@@ -168,7 +170,6 @@
       });
     }
 
-    // Create Shop
     function createShop(event) {
       event.preventDefault();
       const data = {
@@ -192,7 +193,6 @@
       });
     }
 
-    // Load All Shops
     function loadShops() {
       fetch("http://localhost:8080/Token/getAllShops", {
         headers: { "Authorization": "Bearer " + authToken }
@@ -203,14 +203,11 @@
       });
     }
 
-    // Filter Shops by Type
     function filterByType() {
       const type = document.getElementById("filterShopType").value;
       const dropdown = document.getElementById("shopDropdown");
       dropdown.innerHTML = '<option value="">Select Shop</option>';
-
       let filtered = type ? allShops.filter(s => s.shopType === type) : allShops;
-
       filtered.forEach(shop => {
         const option = document.createElement("option");
         option.value = shop.id;
@@ -219,7 +216,6 @@
       });
     }
 
-    // Show Shop Details
     function showShopDetails() {
       selectedShopId = document.getElementById("shopDropdown").value;
       if (!selectedShopId) return;
@@ -229,19 +225,24 @@
       .then(res => res.json())
       .then(data => {
         if (data.status === "success") {
-          document.getElementById("shopDetails").innerText =
-            "📍 " + data.data.shopName +
-            " | Current Token: " + data.data.currentToken +
-            " | Total Wait Time: " + data.data.estimatedWaitTime + " mins";
+          const shop = data.data;
+         let currentToken = shop.currentToken < 1 ? 1 : shop.currentToken;
+         let waitTime = shop.estimatedWaitTime < 0 ? 0 : shop.estimatedWaitTime;
+
+        document.getElementById("shopDetails").innerText =
+  `📍 ${shop.shopName} | Current Token: ${currentToken} | Wait Time: ${waitTime} mins`;
+
         } else {
           document.getElementById("shopDetails").innerText = "❌ " + data.message;
         }
       });
     }
 
-    // Take Token
     function takeToken() {
-      if (!selectedShopId) { alert("Please select a shop first!"); return; }
+      if (!selectedShopId) {
+        alert("Please select a shop first!");
+        return;
+      }
       fetch(`http://localhost:8080/Token/takeToken/${selectedShopId}`, {
         method: "POST",
         headers: { "Authorization": "Bearer " + authToken }
@@ -250,8 +251,9 @@
       .then(data => {
         if (data.status === "success") {
           document.getElementById("takeResult").innerText =
-            "✅ Token No: " + data.data.tokenNo +
-            " | Wait Time: " + data.data.estimatedWaitTime + " mins";
+            `✅ Token No: ${data.data.tokenNo} | Wait Time: ${data.data.estimatedWaitTime} mins`;
+            showShopDetails();
+            showMyTokens();
           loadShops();
           showShopDetails();
         } else {
@@ -260,7 +262,6 @@
       });
     }
 
-    // Show My Tokens
     function showMyTokens() {
       fetch("http://localhost:8080/Token/showMyTokens", {
         headers: { "Authorization": "Bearer " + authToken }
@@ -269,7 +270,6 @@
       .then(data => {
         const container = document.getElementById("myTokensResult");
         container.innerHTML = "";
-
         if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
           data.data.forEach(t => {
             const div = document.createElement("div");
@@ -277,25 +277,19 @@
             div.style.padding = "10px";
             div.style.background = "#eef";
             div.style.borderRadius = "5px";
-
-            div.innerHTML = `
-              🏪 <b>${t.shopName}</b> (${t.shopType}) <br>
-              📍 Address: ${t.address} <br>
-              🎟️ Your Token No: ${t.yourTokenNo} <br>
-              ⏳ Wait Time: ${t.estimatedWaitTime} mins
-            `;
+            div.innerHTML =
+              `🏪 <b>${t.shopName}</b> (${t.shopType}) <br>
+               📍 ${t.address} <br>
+               🎟️ Token No: ${t.yourTokenNo} <br>
+               ⏳ Wait Time: ${t.estimatedWaitTime} mins`;
             container.appendChild(div);
           });
         } else {
           container.innerText = "❌ " + (data.message || "No tokens found");
         }
-      })
-      .catch(err => {
-        document.getElementById("myTokensResult").innerText = "⚠️ Error fetching tokens: " + err;
       });
     }
 
-    // Show My Shops
     function showMyShops() {
       fetch("http://localhost:8080/Token/myShops", {
         headers: { "Authorization": "Bearer " + authToken }
@@ -304,32 +298,59 @@
       .then(data => {
         const container = document.getElementById("myShopsResult");
         container.innerHTML = "";
-
         if (data.status === "success" && Array.isArray(data.data) && data.data.length > 0) {
           data.data.forEach(shop => {
+            let currentToken = shop.currentToken < 1 ? 1 : shop.currentToken;
+            let nextToken = currentToken;
+
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
             div.style.padding = "10px";
             div.style.background = "#eef";
             div.style.borderRadius = "5px";
-
             div.innerHTML = `
               🏪 <b>${shop.shopName}</b> (${shop.shopType}) <br>
-              📍 Address: ${shop.address} <br>
-              🎟️ Current Token: ${shop.currentToken} <br>
-              ⏳ Time per Customer: ${shop.timePerCustomer} mins
+              📍 ${shop.address} <br>
+              🎟️ Current Token: <span id="current-${shop.id}">${currentToken}</span>
+
+              ⏳ Time per Customer: ${shop.timePerCustomer} mins <br>
+              <button id="completeBtn-${shop.id}" onclick="completeToken(${shop.id})">
+                ✅ Complete Token ${nextToken}
+              </button>
+              <p id="result-${shop.id}" style="color:green;"></p>
             `;
             container.appendChild(div);
           });
         } else {
           container.innerText = "❌ " + (data.message || "No shops found");
         }
+      });
+    }
+
+    function completeToken(shopId) {
+      const btn = document.getElementById(`completeBtn-${shopId}`);
+      const result = document.getElementById(`result-${shopId}`);
+      fetch(`http://localhost:8080/Token/completeToken/${shopId}`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + authToken }
       })
-      .catch(err => {
-        document.getElementById("myShopsResult").innerText = "⚠️ Error fetching shops: " + err;
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          const currentToken = data.data.currentToken;
+          const nextToken = data.data.nextTokenToComplete;
+          document.getElementById(`current-${shopId}`).innerText = currentToken;
+          btn.innerText = `✅ Complete Token ${nextToken}`;
+          result.innerText = `🎟️ Token ${currentToken -1} completed successfully!`;
+          showMyShops();
+          showShopDetails();
+          showMyTokens();
+        } else {
+          result.innerText = "❌ " + data.message;
+        }
       });
     }
 </script>
-
 </body>
 </html>
+```

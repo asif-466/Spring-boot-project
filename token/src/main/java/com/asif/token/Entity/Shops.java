@@ -11,12 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Shops {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private  String shopType;
+    private String shopType;
 
     @Column(nullable = false)
     private String shopName;
@@ -27,9 +28,10 @@ public class Shops {
     @Column(nullable = false)
     private int timePerCustomer;
 
-    private int currentToken=0;
+    private int totalToken = 0;
+    private int currentToken = 1;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id",nullable = false)
-    private Users OWNER;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Users owner;
 }

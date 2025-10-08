@@ -16,6 +16,7 @@ import java.util.*;
 
 @Service
 public class TokenService {
+
     @Autowired
     public TokenRepository repo;
 
@@ -24,7 +25,6 @@ public class TokenService {
 
     @Autowired
     private ShopTokenRepository shopTokenRepo;
-
 
     @Autowired
     public TokenUtil jwtUtil;
@@ -45,6 +45,7 @@ public class TokenService {
         return new DtoApiResponse("success", "SIGNUP SUCCESSFUL", user.getName());
     }
 
+
     public DtoApiResponse login(String mobile, String password) {
         Users user = repo.findByMobile(mobile).orElse(null);
         if (user == null) {
@@ -53,106 +54,128 @@ public class TokenService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             return new DtoApiResponse("error", "INVALID PASSWORD", password);
         }
-        String token = jwtUtil.generateToken(user.getMobile(), user.getRole());
-        return new DtoApiResponse("success","login successful", token);
+        String token = jwtUtil.generateToken(user.getMobile());
+        return new DtoApiResponse("success", "login successful", token);
     }
+
 
     public DtoApiResponse createShop(String mobile, Shops shop) {
         Users owner = repo.findByMobile(mobile).orElse(null);
-        if (owner == null || !"ROLE_OWNER".equals(owner.getRole())) {
-            return new DtoApiResponse("error", "only owner can create shop", null);
+        if (owner == null) {
+            return new DtoApiResponse("error", "Invalid user", null);
         }
-        shop.setOWNER(owner);
+        shop.setOwner(owner);
         shopRepo.save(shop);
-        return new DtoApiResponse("success", "shop create successful", shop.getShopName());
+        return new DtoApiResponse("success", "Shop created successfully", shop.getShopName());
     }
 
     public DtoApiResponse takeToken(String mobile, Long shopId) {
         Users user = repo.findByMobile(mobile).orElse(null);
-        if (user == null || (!"ROLE_CUSTOMER".equals(user.getRole()) && !"ROLE_OWNER".equals(user.getRole()))) {
-            return new DtoApiResponse("error", "only customer and shopOwner can take token", null);
-        }
+        if (user == null) return new DtoApiResponse("error", "Invalid user", null);
+
         Shops shop = shopRepo.findById(shopId).orElse(null);
-        if (shop == null) {
-            return new DtoApiResponse("error", "shop not found", null);
-        }
+        if (shop == null) return new DtoApiResponse("error", "Shop not found", null);
 
         Optional<ShopToken> existingToken = shopTokenRepo.findByUserAndShop(user, shop);
         if (existingToken.isPresent()) {
-            return new DtoApiResponse("error", "you already have a token in this shop", null);
+            return new DtoApiResponse("error", "You already have a token in this shop", null);
         }
 
-        int newToken = shop.getCurrentToken() + 1;
-        shop.setCurrentToken(newToken);
+
+        if (shop.getCurrentToken() < 1) {
+            shop.setCurrentToken(1);
+        }
+
+
+        int newTokenNo = shop.getTotalToken() + 1;
+        shop.setTotalToken(newTokenNo);
         shopRepo.save(shop);
 
-        int waitTime = (newToken - 1) * shop.getTimePerCustomer();
-        ShopToken shopToken = new ShopToken();
-        shopToken.setUser(user);
-        shopToken.setShop(shop);
-        shopToken.setTokenNo(newToken);
-        shopTokenRepo.save(shopToken);
-        Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("shopId", shop.getId());
-        tokenData.put("tokenNo", newToken);
-        tokenData.put("estimatedWaitTime", waitTime);
-        return new DtoApiResponse("success", "token issued successful", tokenData);
+        int currentToken = shop.getCurrentToken();
+        if (currentToken < 1) currentToken = 1;
+
+        int waitTime = 0;
+        if (newTokenNo > currentToken) {
+            waitTime = (newTokenNo - currentToken) * shop.getTimePerCustomer();
+        }
+
+
+        ShopToken token = new ShopToken();
+        token.setUser(user);
+        token.setShop(shop);
+        token.setTokenNo(newTokenNo);
+        shopTokenRepo.save(token);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("shopName", shop.getShopName());
+        data.put("tokenNo", newTokenNo);
+        data.put("estimatedWaitTime", waitTime);
+        data.put("currentToken", shop.getCurrentToken());
+        data.put("nextTokenToComplete", shop.getCurrentToken()); // 👈 add this
+
+        return new DtoApiResponse("success", "Token issued successfully", data);
     }
+
 
     public DtoApiResponse getAllShops(String mobile) {
         Users user = repo.findByMobile(mobile).orElse(null);
-        if (user == null || (!"ROLE_CUSTOMER".equals(user.getRole()) && !"ROLE_OWNER".equals(user.getRole()))) {
-            return new DtoApiResponse("error", "only customer and shopOwner can see shop", null);
+        if (user == null) {
+            return new DtoApiResponse("error", "Invalid user", null);
         }
         List<Shops> shops = shopRepo.findAll();
-        return new DtoApiResponse("success", "list of shops", shops);
+        return new DtoApiResponse("success", "List of shops", shops);
     }
-
 
 
     public DtoApiResponse showMyTokens(String mobile) {
         Users user = repo.findByMobile(mobile).orElse(null);
-        if (user == null || (!"ROLE_CUSTOMER".equals(user.getRole()) && !"ROLE_OWNER".equals(user.getRole()))) {
-            return new DtoApiResponse("error", "only customer and shopOwner can see tokens", null);
+        if (user == null) {
+            return new DtoApiResponse("error", "Invalid user", null);
         }
 
         List<ShopToken> tokens = shopTokenRepo.findByUser(user);
-
         if (tokens.isEmpty()) {
-            return new DtoApiResponse("success", "you have no tokens", null);
+            return new DtoApiResponse("success", "You have no tokens", null);
         }
 
         List<Map<String, Object>> tokenList = new ArrayList<>();
-
         for (ShopToken token : tokens) {
             Shops shop = token.getShop();
-            int waitTime = (token.getTokenNo() - 1) * shop.getTimePerCustomer();
+
+
+            int waitTime = (token.getTokenNo() - shop.getCurrentToken()) * shop.getTimePerCustomer();
+            if (waitTime < 0) waitTime = 0;
+
             Map<String, Object> tokenData = new HashMap<>();
             tokenData.put("shopId", shop.getId());
             tokenData.put("shopName", shop.getShopName());
             tokenData.put("shopType", shop.getShopType());
             tokenData.put("address", shop.getAddress());
             tokenData.put("yourTokenNo", token.getTokenNo());
+            tokenData.put("currentToken", shop.getCurrentToken());
             tokenData.put("estimatedWaitTime", waitTime);
 
             tokenList.add(tokenData);
         }
 
-        return new DtoApiResponse("success", "yourTokens", tokenList);
+        return new DtoApiResponse("success", "Your tokens", tokenList);
     }
 
     public DtoApiResponse myShops(String mobile) {
         Users owner = repo.findByMobile(mobile).orElse(null);
-        if (owner == null || !"ROLE_OWNER".equals(owner.getRole())) {
-            return new DtoApiResponse("error", "only owner can see their shops", null);
+        if (owner == null) {
+            return new DtoApiResponse("error", "Invalid user", null);
         }
 
-        List<Shops> shops = shopRepo.findByOWNER(owner);
+        List<Shops> shops = shopRepo.findByOwner(owner);
+        if (shops.isEmpty()) {
+            return new DtoApiResponse("success", "You have no shops", null);
+        }
 
         List<Map<String, Object>> shopList = new ArrayList<>();
-
         for (Shops shop : shops) {
-            int waitTime = shop.getCurrentToken() * shop.getTimePerCustomer();
+            int pending = shop.getTotalToken() - shop.getCurrentToken();
+            int waitTime = pending * shop.getTimePerCustomer();
 
             Map<String, Object> shopData = new HashMap<>();
             shopData.put("id", shop.getId());
@@ -160,39 +183,78 @@ public class TokenService {
             shopData.put("shopType", shop.getShopType());
             shopData.put("address", shop.getAddress());
             shopData.put("currentToken", shop.getCurrentToken());
+            shopData.put("totalToken", shop.getTotalToken());
             shopData.put("timePerCustomer", shop.getTimePerCustomer());
             shopData.put("estimatedWaitTime", waitTime);
 
             shopList.add(shopData);
         }
-
-        return new DtoApiResponse("success", "yourShops", shopList);
+        return new DtoApiResponse("success", "Your shops", shopList);
     }
+
 
     public DtoApiResponse getShop(String mobile, Long id) {
         Users user = repo.findByMobile(mobile).orElse(null);
         if (user == null) {
-            return new DtoApiResponse("error", "invalid users", null);
+            return new DtoApiResponse("error", "Invalid user", null);
         }
+
         Shops shop = shopRepo.findById(id).orElse(null);
         if (shop == null) {
-            return new DtoApiResponse("error", "shop not found", null);
+            return new DtoApiResponse("error", "Shop not found", null);
         }
-        int waitTime = shop.getCurrentToken() * shop.getTimePerCustomer();
+
+        int pending = shop.getTotalToken() - shop.getCurrentToken();
+        int waitTime = pending * shop.getTimePerCustomer();
+
         Map<String, Object> shopData = new HashMap<>();
         shopData.put("id", shop.getId());
         shopData.put("shopName", shop.getShopName());
         shopData.put("shopType", shop.getShopType());
         shopData.put("address", shop.getAddress());
         shopData.put("currentToken", shop.getCurrentToken());
+        shopData.put("totalToken", shop.getTotalToken());
         shopData.put("timePerCustomer", shop.getTimePerCustomer());
         shopData.put("estimatedWaitTime", waitTime);
-        return new DtoApiResponse("success", "shop found", shopData);
+
+        return new DtoApiResponse("success", "Shop found", shopData);
+    }
+    public DtoApiResponse completeToken(String mobile, Long shopId) {
+        Users owner = repo.findByMobile(mobile).orElse(null);
+        if (owner == null) {
+            return new DtoApiResponse("error", "Invalid user", null);
+        }
+
+        Shops shop = shopRepo.findById(shopId).orElse(null);
+        if (shop == null) {
+            return new DtoApiResponse("error", "Shop not found", null);
+        }
+
+        if (!shop.getOwner().getId().equals(owner.getId())) {
+            return new DtoApiResponse("error", "You are not the owner of this shop", null);
+        }
+
+
+        if (shop.getCurrentToken() > shop.getTotalToken()) {
+            return new DtoApiResponse("error", "No pending tokens to complete", null);
+        }
+
+
+        shop.setCurrentToken(shop.getCurrentToken() + 1);
+        shopRepo.save(shop);
+
+        int pending = shop.getTotalToken() - shop.getCurrentToken();
+        int waitTime = pending * shop.getTimePerCustomer();
+        if (waitTime < 0) waitTime = 0;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("shopName", shop.getShopName());
+        data.put("currentToken", shop.getCurrentToken());
+        data.put("nextTokenToComplete", shop.getCurrentToken());
+        data.put("pendingTokens", pending);
+        data.put("estimatedWaitTime", waitTime);
+
+        return new DtoApiResponse("success", "Token marked as completed", data);
     }
 
-
 }
-
-
-
-
