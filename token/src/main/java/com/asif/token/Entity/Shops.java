@@ -28,6 +28,10 @@ public class Shops {
     @Column(nullable = false)
     private int timePerCustomer;
 
+    @Column(name = "close_time")
+    private String closeTime;
+
+
     private int totalToken = 0;
     private int currentToken = 1;
 

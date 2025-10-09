@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -64,6 +65,13 @@ public class TokenService {
         if (owner == null) {
             return new DtoApiResponse("error", "Invalid user", null);
         }
+        if(shop.getCloseTime() != null && !shop.getCloseTime().isEmpty()){
+            try {
+                LocalTime.parse(shop.getCloseTime());
+            }catch (Exception e){
+                return new DtoApiResponse("error","Invalid close time format.Use HH:mm(e.g. 21:30)",null);
+            }
+        }
         shop.setOwner(owner);
         shopRepo.save(shop);
         return new DtoApiResponse("success", "Shop created successfully", shop.getShopName());
@@ -76,6 +84,13 @@ public class TokenService {
         Shops shop = shopRepo.findById(shopId).orElse(null);
         if (shop == null) return new DtoApiResponse("error", "Shop not found", null);
 
+        if(shop.getCloseTime() !=null){
+            LocalTime now=LocalTime.now();
+            LocalTime closeTime=LocalTime.parse(shop.getCloseTime());
+            if(now.isAfter(closeTime)){
+                return new DtoApiResponse("error","Shop is closed",null);
+            }
+        }
         Optional<ShopToken> existingToken = shopTokenRepo.findByUserAndShop(user, shop);
         if (existingToken.isPresent()) {
             return new DtoApiResponse("error", "You already have a token in this shop", null);
@@ -111,7 +126,8 @@ public class TokenService {
         data.put("tokenNo", newTokenNo);
         data.put("estimatedWaitTime", waitTime);
         data.put("currentToken", shop.getCurrentToken());
-        data.put("nextTokenToComplete", shop.getCurrentToken()); // 👈 add this
+        data.put("nextTokenToComplete", shop.getCurrentToken());
+        data.put("closeTime",shop.getCloseTime());
 
         return new DtoApiResponse("success", "Token issued successfully", data);
     }
@@ -138,6 +154,8 @@ public class TokenService {
             return new DtoApiResponse("success", "You have no tokens", null);
         }
 
+
+
         List<Map<String, Object>> tokenList = new ArrayList<>();
         for (ShopToken token : tokens) {
             Shops shop = token.getShop();
@@ -154,8 +172,16 @@ public class TokenService {
             tokenData.put("yourTokenNo", token.getTokenNo());
             tokenData.put("currentToken", shop.getCurrentToken());
             tokenData.put("estimatedWaitTime", waitTime);
+            tokenData.put("closeTime",shop.getCloseTime());
+            LocalTime now = LocalTime.now();
+            if (shop.getCloseTime() != null && now.isAfter(LocalTime.parse(shop.getCloseTime()))) {
+                tokenData.put("status", "expired");
+            } else {
+                tokenData.put("status", "active");
+            }
 
             tokenList.add(tokenData);
+
         }
 
         return new DtoApiResponse("success", "Your tokens", tokenList);
@@ -186,6 +212,7 @@ public class TokenService {
             shopData.put("totalToken", shop.getTotalToken());
             shopData.put("timePerCustomer", shop.getTimePerCustomer());
             shopData.put("estimatedWaitTime", waitTime);
+            shopData.put("closeTime",shop.getCloseTime());
 
             shopList.add(shopData);
         }
@@ -216,6 +243,7 @@ public class TokenService {
         shopData.put("totalToken", shop.getTotalToken());
         shopData.put("timePerCustomer", shop.getTimePerCustomer());
         shopData.put("estimatedWaitTime", waitTime);
+        shopData.put("closeTime",shop.getCloseTime());
 
         return new DtoApiResponse("success", "Shop found", shopData);
     }
@@ -253,6 +281,7 @@ public class TokenService {
         data.put("nextTokenToComplete", shop.getCurrentToken());
         data.put("pendingTokens", pending);
         data.put("estimatedWaitTime", waitTime);
+        data.put("closeTime",shop.getCloseTime());
 
         return new DtoApiResponse("success", "Token marked as completed", data);
     }

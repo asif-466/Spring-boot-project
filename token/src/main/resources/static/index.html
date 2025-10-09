@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,7 +45,7 @@
 <body>
 <h1>Token Management App</h1>
 
-
+<!-- AUTH SECTION -->
 <div id="authSection" class="card">
     <h2>Signup</h2>
     <form onsubmit="signup(event)">
@@ -64,9 +65,10 @@
     <p id="loginResult"></p>
 </div>
 
-
+<!-- APP SECTION -->
 <div id="appSection" class="hidden">
 
+    <!-- CREATE SHOP -->
     <div class="card">
         <h2>Create Shop</h2>
         <form onsubmit="createShop(event)">
@@ -82,12 +84,14 @@
             </select>
             <input type="text" id="shopName" placeholder="Shop Name" required>
             <input type="text" id="shopAddress" placeholder="Address" required>
+            <input type="time" id="shopCloseTime" required>
             <input type="number" id="timePerCustomer" placeholder="Minutes per Customer" required>
             <button type="submit">Create Shop</button>
         </form>
         <p id="createShopResult"></p>
     </div>
 
+    <!-- TAKE TOKEN -->
     <div class="card">
         <h2>Take Token</h2>
         <select id="filterShopType" onchange="filterByType()">
@@ -108,14 +112,14 @@
         <p id="takeResult"></p>
     </div>
 
-
+    <!-- MY TOKENS -->
     <div class="card">
         <h2>My Tokens</h2>
         <button onclick="showMyTokens()">Show My Tokens</button>
         <div id="myTokensResult"></div>
     </div>
 
-
+    <!-- MY SHOPS -->
     <div class="card">
         <h2>My Shops</h2>
         <button onclick="showMyShops()">Show My Shops</button>
@@ -176,6 +180,7 @@
         shopType: document.getElementById("shopType").value,
         shopName: document.getElementById("shopName").value,
         address: document.getElementById("shopAddress").value,
+        closeTime: document.getElementById("shopCloseTime").value,
         timePerCustomer: parseInt(document.getElementById("timePerCustomer").value)
       };
       fetch("http://localhost:8080/Token/createShop", {
@@ -226,12 +231,11 @@
       .then(data => {
         if (data.status === "success") {
           const shop = data.data;
-         let currentToken = shop.currentToken < 1 ? 1 : shop.currentToken;
-         let waitTime = shop.estimatedWaitTime < 0 ? 0 : shop.estimatedWaitTime;
+          let currentToken = shop.currentToken < 1 ? 1 : shop.currentToken;
+          let waitTime = shop.estimatedWaitTime < 0 ? 0 : shop.estimatedWaitTime;
 
-        document.getElementById("shopDetails").innerText =
-  `📍 ${shop.shopName} | Current Token: ${currentToken} | Wait Time: ${waitTime} mins`;
-
+          document.getElementById("shopDetails").innerText =
+            `📍 ${shop.shopName} | Closes at: ${shop.closeTime || "N/A"} | Current Token: ${currentToken} | Wait Time: ${waitTime} mins`;
         } else {
           document.getElementById("shopDetails").innerText = "❌ " + data.message;
         }
@@ -252,10 +256,9 @@
         if (data.status === "success") {
           document.getElementById("takeResult").innerText =
             `✅ Token No: ${data.data.tokenNo} | Wait Time: ${data.data.estimatedWaitTime} mins`;
-            showShopDetails();
-            showMyTokens();
-          loadShops();
           showShopDetails();
+          showMyTokens();
+          loadShops();
         } else {
           document.getElementById("takeResult").innerText = "❌ " + data.message;
         }
@@ -280,8 +283,10 @@
             div.innerHTML =
               `🏪 <b>${t.shopName}</b> (${t.shopType}) <br>
                📍 ${t.address} <br>
+               🕒 Closes at: ${t.closeTime || "N/A"} <br>
                🎟️ Token No: ${t.yourTokenNo} <br>
-               ⏳ Wait Time: ${t.estimatedWaitTime} mins`;
+               ⏳ Wait Time: ${t.estimatedWaitTime} mins <br>
+               Status: ${t.status}`;
             container.appendChild(div);
           });
         } else {
@@ -311,8 +316,8 @@
             div.innerHTML = `
               🏪 <b>${shop.shopName}</b> (${shop.shopType}) <br>
               📍 ${shop.address} <br>
-              🎟️ Current Token: <span id="current-${shop.id}">${currentToken}</span>
-
+              🕒 Closes at: ${shop.closeTime || "N/A"} <br>
+              🎟️ Current Token: <span id="current-${shop.id}">${currentToken}</span><br>
               ⏳ Time per Customer: ${shop.timePerCustomer} mins <br>
               <button id="completeBtn-${shop.id}" onclick="completeToken(${shop.id})">
                 ✅ Complete Token ${nextToken}
