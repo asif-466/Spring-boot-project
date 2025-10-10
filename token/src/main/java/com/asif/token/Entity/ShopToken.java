@@ -31,6 +31,10 @@ public class ShopToken {
     @Column(nullable = false)
     private int tokenNo;
 
+    @Column(nullable = false)
+    private int estimatedWaitTime;
+
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

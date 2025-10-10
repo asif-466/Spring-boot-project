@@ -46,7 +46,8 @@ public class TokenConfig {
                                 "/images/**",
                                 "/favicon.ico",
                                 "/Token/signup",
-                                "/Token/login"
+                                "/Token/login",
+                                "/favicon.ico"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

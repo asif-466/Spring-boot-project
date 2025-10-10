@@ -77,7 +77,6 @@ public class TokenService {
         shopRepo.save(shop);
         return new DtoApiResponse("success", "Shop created successfully", shop.getShopName());
     }
-
     public DtoApiResponse takeToken(String mobile, Long shopId) {
         Users user = repo.findByMobile(mobile).orElse(null);
         if (user == null) return new DtoApiResponse("error", "Invalid user", null);
@@ -85,41 +84,43 @@ public class TokenService {
         Shops shop = shopRepo.findById(shopId).orElse(null);
         if (shop == null) return new DtoApiResponse("error", "Shop not found", null);
 
-        if(shop.getCloseTime() !=null){
-            LocalTime now=LocalTime.now();
-            LocalTime closeTime=LocalTime.parse(shop.getCloseTime());
-            if(now.isAfter(closeTime)){
-                return new DtoApiResponse("error","Shop is closed",null);
+        if (shop.getCloseTime() != null) {
+            LocalTime now = LocalTime.now();
+            LocalTime closeTime = LocalTime.parse(shop.getCloseTime());
+            if (now.isAfter(closeTime)) {
+                return new DtoApiResponse("error", "Shop is closed", null);
             }
         }
+
         Optional<ShopToken> existingToken = shopTokenRepo.findByUserAndShop(user, shop);
         if (existingToken.isPresent()) {
             return new DtoApiResponse("error", "You already have a token in this shop", null);
         }
 
-
         if (shop.getCurrentToken() < 1) {
             shop.setCurrentToken(1);
         }
 
-
+        // ✅ Pehle increment karo totalToken
         int newTokenNo = shop.getTotalToken() + 1;
         shop.setTotalToken(newTokenNo);
         shopRepo.save(shop);
 
+        // ✅ Ab wait time calculate karo
         int currentToken = shop.getCurrentToken();
         if (currentToken < 1) currentToken = 1;
 
         int waitTime = 0;
         if (newTokenNo > currentToken) {
-            waitTime = (newTokenNo - currentToken) * shop.getTimePerCustomer();
+            waitTime = (newTokenNo - currentToken - 1) * shop.getTimePerCustomer();
         }
 
-
+        // ✅ Save correct wait time
         ShopToken token = new ShopToken();
         token.setUser(user);
         token.setShop(shop);
         token.setTokenNo(newTokenNo);
+        token.setEstimatedWaitTime(waitTime);
         shopTokenRepo.save(token);
 
         Map<String, Object> data = new HashMap<>();
@@ -128,9 +129,9 @@ public class TokenService {
         data.put("estimatedWaitTime", waitTime);
         data.put("currentToken", shop.getCurrentToken());
         data.put("nextTokenToComplete", shop.getCurrentToken());
-        data.put("closeTime",shop.getCloseTime());
-        data.put("openTime",shop.getOpenTime());
-        data.put("city",shop.getCity());
+        data.put("closeTime", shop.getCloseTime());
+        data.put("openTime", shop.getOpenTime());
+        data.put("city", shop.getCity());
 
         return new DtoApiResponse("success", "Token issued successfully", data);
     }
@@ -164,8 +165,8 @@ public class TokenService {
             Shops shop = token.getShop();
 
 
-            int waitTime = (token.getTokenNo() - shop.getCurrentToken()) * shop.getTimePerCustomer();
-            if (waitTime < 0) waitTime = 0;
+            int waitTime = token.getEstimatedWaitTime();
+
 
             Map<String, Object> tokenData = new HashMap<>();
             tokenData.put("shopId", shop.getId());
