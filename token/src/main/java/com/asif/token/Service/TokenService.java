@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -173,12 +174,21 @@ public class TokenService {
             tokenData.put("currentToken", shop.getCurrentToken());
             tokenData.put("estimatedWaitTime", waitTime);
             tokenData.put("closeTime",shop.getCloseTime());
+            LocalDate today = LocalDate.now();
             LocalTime now = LocalTime.now();
-            if (shop.getCloseTime() != null && now.isAfter(LocalTime.parse(shop.getCloseTime()))) {
+            LocalTime closeTime = null;
+
+            if (shop.getCloseTime() != null) {
+                closeTime = LocalTime.parse(shop.getCloseTime());
+            }
+
+            if (!token.getCreatedAt().toLocalDate().isEqual(today) ||
+                    (closeTime != null && now.isAfter(closeTime))) {
                 tokenData.put("status", "expired");
             } else {
                 tokenData.put("status", "active");
             }
+
 
             tokenList.add(tokenData);
 
