@@ -129,6 +129,8 @@ public class TokenService {
         data.put("currentToken", shop.getCurrentToken());
         data.put("nextTokenToComplete", shop.getCurrentToken());
         data.put("closeTime",shop.getCloseTime());
+        data.put("openTime",shop.getOpenTime());
+        data.put("city",shop.getCity());
 
         return new DtoApiResponse("success", "Token issued successfully", data);
     }
@@ -174,6 +176,8 @@ public class TokenService {
             tokenData.put("currentToken", shop.getCurrentToken());
             tokenData.put("estimatedWaitTime", waitTime);
             tokenData.put("closeTime",shop.getCloseTime());
+            tokenData.put("openTime",shop.getOpenTime());
+            tokenData.put("city",shop.getCity());
             LocalDate today = LocalDate.now();
             LocalTime now = LocalTime.now();
             LocalTime closeTime = null;
@@ -223,6 +227,8 @@ public class TokenService {
             shopData.put("timePerCustomer", shop.getTimePerCustomer());
             shopData.put("estimatedWaitTime", waitTime);
             shopData.put("closeTime",shop.getCloseTime());
+            shopData.put("city",shop.getCity());
+            shopData.put("openTime",shop.getOpenTime());
 
             shopList.add(shopData);
         }
@@ -254,6 +260,8 @@ public class TokenService {
         shopData.put("timePerCustomer", shop.getTimePerCustomer());
         shopData.put("estimatedWaitTime", waitTime);
         shopData.put("closeTime",shop.getCloseTime());
+        shopData.put("openTime",shop.getOpenTime());
+        shopData.put("city",shop.getCity());
 
         return new DtoApiResponse("success", "Shop found", shopData);
     }
@@ -292,6 +300,8 @@ public class TokenService {
         data.put("pendingTokens", pending);
         data.put("estimatedWaitTime", waitTime);
         data.put("closeTime",shop.getCloseTime());
+        data.put("openTime",shop.getOpenTime());
+        data.put("city",shop.getCity());
 
         return new DtoApiResponse("success", "Token marked as completed", data);
     }

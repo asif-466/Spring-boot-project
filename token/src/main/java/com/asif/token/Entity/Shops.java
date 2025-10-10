@@ -28,7 +28,13 @@ public class Shops {
     @Column(nullable = false)
     private int timePerCustomer;
 
-    @Column(name = "close_time")
+    @Column(nullable = false, name = "open_time")
+    private String openTime;
+
+    @Column( nullable = false, name = "city")
+    private String city;
+
+    @Column(nullable = false, name = "close_time")
     private String closeTime;
 
 

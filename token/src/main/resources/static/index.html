@@ -1,430 +1,904 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Token Management System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <meta charset="utf-8" />
+    <title>Token Manager — Modern UI</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
-        * {
-          box-sizing: border-box;
+        :root{
+          --bg1:#0f1724;
+          --bg2:#3f2b63;
+          --card:#ffffffee;
+          --accent1:#00b4d8;
+          --accent2:#007bff;
+          --muted:#6b7280;
+          --success:#16a34a;
+          --danger:#dc2626;
         }
-        body {
-          font-family: 'Poppins', sans-serif;
-          background: linear-gradient(135deg, #4b6cb7, #182848);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          margin: 0;
-          color: #333;
+        *{box-sizing:border-box}
+        body{
+          margin:0;
+          min-height:100vh;
+          font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+          background: linear-gradient(135deg,var(--bg1),var(--bg2));
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:28px;
+          color:#0f1724;
         }
-        .container {
-          width: 95%;
-          max-width: 420px;
-          background: rgba(255, 255, 255, 0.15);
-          border-radius: 20px;
-          backdrop-filter: blur(15px);
-          box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-          overflow: hidden;
-          transition: 0.4s ease;
+
+        /* Outer app container */
+        .app {
+          width:100%;
+          max-width:980px;
+          display:grid;
+          grid-template-columns: 1fr 420px;
+          gap:24px;
+          align-items:start;
         }
-        h1 {
-          text-align: center;
-          color: #fff;
-          margin-top: 25px;
-          font-size: 28px;
-          letter-spacing: 1px;
+
+        /* Left column (main) */
+        .panel {
+          background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92));
+          border-radius:14px;
+          padding:22px;
+          box-shadow: 0 8px 30px rgba(2,6,23,0.45);
+        }
+
+        header.app-header {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          margin-bottom:18px;
+        }
+        header.app-header h1{
+          margin:0;
+          font-size:20px;
+          color: #0b1220;
+          letter-spacing:0.2px;
+        }
+
+        /* menu icon */
+        .menu-btn{
+          background:transparent;
+          border:0;
+          padding:8px;
+          border-radius:8px;
+          cursor:pointer;
+          display:flex;
+          align-items:center;
+          gap:8px;
+        }
+        .menu-btn:hover{ background:rgba(0,0,0,0.04) }
+
+        .avatar {
+          width:36px;height:36px;border-radius:10px;
+          background:linear-gradient(135deg,var(--accent2),var(--accent1));
+          color:white;display:flex;align-items:center;justify-content:center;
+          font-weight:700;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        }
+
+        /* hero with two big actions */
+        .hero {
+          display:flex;
+          gap:18px;
+          align-items:center;
+          justify-content:center;
+          padding:18px;
+        }
+        .action-btn {
+          flex:1;
+          border-radius:12px;
+          padding:20px;
+          text-align:center;
+          cursor:pointer;
+          border:0;
+          font-weight:700;
+          font-size:16px;
+          color:white;
+          background: linear-gradient(135deg,var(--accent2),var(--accent1));
+          box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+          transition:transform .14s ease, box-shadow .14s ease;
+        }
+        .action-btn.secondary {
+          background: linear-gradient(135deg,#f97316,#ffb86b);
+        }
+        .action-btn:active{ transform:translateY(3px) }
+
+        /* Right column (sidebar with small cards) */
+        .sidebar {
+          display:flex;
+          flex-direction:column;
+          gap:16px;
         }
         .card {
-          padding: 25px 30px;
-          display: none;
-          animation: fadeIn 0.4s ease-in;
+          background:var(--card);
+          padding:14px;
+          border-radius:12px;
+          box-shadow: 0 8px 24px rgba(2,6,23,0.12);
         }
-        .card.active {
-          display: block;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        input, select, button {
-          width: 100%;
-          padding: 12px;
-          margin: 8px 0;
-          border-radius: 10px;
-          border: 1px solid #ccc;
-          font-size: 15px;
-          outline: none;
-        }
-        input:focus, select:focus {
-          border-color: #4b6cb7;
-        }
-        button {
-          background: linear-gradient(135deg, #00b4db, #0083b0);
-          color: white;
-          font-weight: 600;
-          border: none;
-          cursor: pointer;
-          transition: 0.3s ease;
-        }
-        button:hover {
-          background: linear-gradient(135deg, #0083b0, #00b4db);
-        }
-        .switch-text {
-          text-align: center;
-          color: #fff;
-          margin-top: 10px;
-          font-size: 14px;
-          cursor: pointer;
-        }
-        .switch-text:hover {
-          text-decoration: underline;
-        }
-        .result {
-          text-align: center;
-          font-weight: 500;
-          font-size: 14px;
-        }
-        .success { color: #16a34a; }
-        .error { color: #dc2626; }
+        .card h3{ margin:0 0 8px 0; font-size:15px; color:#0b1220 }
+        .muted{ color:var(--muted); font-size:13px }
 
-        /* App Section Styles */
-        #appSection {
-          padding: 20px 25px;
-          display: none;
+        /* floating forms area - slide panels */
+        .panel-area{
+          margin-top:10px;
+          display:grid;
+          gap:12px;
         }
-        .shop-card {
+
+        .slide-panel {
           background: #fff;
-          border-radius: 15px;
-          padding: 18px;
-          margin-bottom: 15px;
-          box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-          animation: fadeIn 0.3s ease;
+          border-radius:12px;
+          padding:16px;
+          box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+          transform-origin: top;
+          transition: transform .28s cubic-bezier(.2,.9,.3,1),opacity .22s ease;
         }
-        .shop-card h3 {
-          margin: 0 0 5px 0;
+        .hidden{ display:none !important; opacity:0; transform:translateY(-10px) scale(.99);}
+
+        label{ display:block; font-size:13px; color:#374151; margin-bottom:6px; font-weight:600 }
+        input[type="text"], input[type="password"], input[type="time"], input[type="number"], select {
+          width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee;
+          font-size:14px; margin-bottom:12px; background:white;
         }
-        .title-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
+
+        .row{ display:flex; gap:10px; }
+        .row .col{ flex:1 }
+
+        .btn {
+          display:inline-block;padding:10px 14px;border-radius:10px;border:0;font-weight:700;
+          cursor:pointer;color:white;background:linear-gradient(135deg,var(--accent2),var(--accent1));
         }
-        hr {
-          border: none;
-          border-top: 1px solid #ccc;
-          margin: 15px 0;
+        .btn.ghost{ background:transparent;color:var(--accent2); border:1px solid rgba(0,0,0,0.06) }
+        .btn.warn{ background:linear-gradient(135deg,#f97316,#ffb86b) }
+
+        .top-menu {
+          position: absolute;
+          right:28px;
+          top:28px;
+          display:flex;
+          gap:8px;
+          align-items:center;
         }
-        .logout {
-          text-align: center;
-          margin-top: 15px;
-          color: #fff;
-          font-weight: 500;
-          cursor: pointer;
+
+        /* slide menu */
+        .slide-menu {
+          position:fixed;
+          top:0; right:-320px;
+          width:300px; height:100vh;
+          background: linear-gradient(180deg,#fff, #f8fafc);
+          box-shadow: -12px 0 40px rgba(2,6,23,0.18);
+          transition: right .28s cubic-bezier(.2,.9,.3,1);
+          padding:18px;
+          z-index:999;
         }
-        .logout:hover {
-          text-decoration: underline;
+        .slide-menu.open{ right:0 }
+        .menu-item { padding:12px; border-radius:8px; cursor:pointer; font-weight:600; color:#0b1220; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+        .menu-item:hover{ background: rgba(0,0,0,0.04) }
+
+        .notice { font-size:13px; color:var(--muted); margin-top:8px }
+
+        /* lists in UI */
+        .list-item { border-radius:10px; padding:10px; background:#fff; margin-bottom:10px; box-shadow:0 8px 20px rgba(2,6,23,0.05); }
+        .small-muted { color:var(--muted); font-size:13px }
+
+        .status-pill{
+          display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;
+        }
+        .status-active{ background:#ecfdf5;color:var(--success); border:1px solid rgba(16,185,129,0.12) }
+        .status-expired{ background:#fff1f2;color:var(--danger); border:1px solid rgba(220,38,38,0.08) }
+
+        /* responsive */
+        @media (max-width:980px){
+          .app{ grid-template-columns: 1fr; padding:12px}
+          .sidebar{ order:2 }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🎟️ Token App</h1>
+<div class="top-menu" id="topMenuWrapper">
+    <div class="avatar" id="avatar">A</div>
+    <button class="menu-btn" id="openMenuBtn" title="Open menu">☰</button>
+</div>
 
-    <!-- SIGNUP -->
-    <div id="signupCard" class="card active">
-        <h2 style="text-align:center;color:white;">Create Account</h2>
-        <input id="signupName" type="text" placeholder="Full Name" required>
-        <input id="signupMobile" type="text" placeholder="Mobile Number" required>
-        <input id="signupPassword" type="password" placeholder="Password" required>
-        <button onclick="signup()">Sign Up</button>
-        <p id="signupResult" class="result"></p>
-        <p class="switch-text" onclick="switchCard('loginCard')">Already have an account? Login</p>
+<div class="app" role="application" aria-label="Token manager app">
+    <!-- Left (main) -->
+    <div class="panel" id="mainPanel">
+        <header class="app-header">
+            <h1>Token Manager</h1>
+            <div class="muted">Smart token queue for shops</div>
+        </header>
+
+        <section class="hero">
+            <button class="action-btn" id="btnCreateShop">+ Create Shop</button>
+            <button class="action-btn secondary" id="btnTakeToken">🎫 Take Token</button>
+        </section>
+
+        <div class="panel-area">
+            <!-- AUTH area (login/signup) -->
+            <div class="slide-panel" id="authPanel">
+                <h3 id="authTitle">Welcome — Create account or login</h3>
+                <div id="authForms">
+                    <div id="signupForm">
+                        <label>Full name</label>
+                        <input id="signupName" type="text" placeholder="Your full name" />
+                        <label>Mobile number</label>
+                        <input id="signupMobile" type="text" placeholder="10-digit mobile" />
+                        <label>Password</label>
+                        <input id="signupPassword" type="password" placeholder="Password" />
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn" id="signupBtn">Create account</button>
+                            <button class="btn ghost" id="gotoLogin">Have account? Login</button>
+                        </div>
+                        <p class="notice" id="signupMsg"></p>
+                    </div>
+
+                    <div id="loginForm" style="display:none;">
+                        <label>Mobile number</label>
+                        <input id="loginMobile" type="text" placeholder="Registered mobile" />
+                        <label>Password</label>
+                        <input id="loginPassword" type="password" placeholder="Password" />
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn" id="loginBtn">Login</button>
+                            <button class="btn ghost" id="gotoSignup">Create account</button>
+                        </div>
+                        <p class="notice" id="loginMsg"></p>
+                    </div>
+                </div>
+            </div>
+            <!-- Create shop panel -->
+            <div class="slide-panel hidden" id="createShopPanel" aria-hidden="true">
+                <h3>Create new shop</h3>
+
+                <label>Shop category</label>
+                <select id="shopType">
+                    <option value="">— Choose category —</option>
+                    <option>Healthcare (Clinic / Lab / Pharmacy)</option>
+                    <option>Food / Restaurant / Fast Food</option>
+                    <option>Salon / Barber / Beauty</option>
+                    <option>Bank / ATM</option>
+                    <option>Post Office / Courier</option>
+                    <option>Government Office</option>
+                    <option>Other</option>
+                </select>
+
+                <label>Shop name</label>
+                <input id="shopName" type="text" placeholder="e.g. AsifSweet, AsifBarber" />
+
+                <label>Address</label>
+                <input id="shopAddress" type="text" placeholder="Full Address (Street, Area...)" />
+
+                <label>City</label>
+                <input id="shopCity" type="text" placeholder="e.g. Gurgaon, Patna, Delhi..." />
+
+                <div class="row">
+                    <div class="col">
+                        <label>Open time (shop)</label>
+                        <input id="shopOpenTime" type="time" />
+                        <div class="small-muted">Set when shop starts serving customers</div>
+                    </div>
+                    <div class="col">
+                        <label>Close time (shop)</label>
+                        <input id="shopCloseTime" type="time" />
+                        <div class="small-muted">Tokens expire after this time daily</div>
+                    </div>
+                </div>
+
+                <label>Minutes per customer</label>
+                <input id="timePerCustomer" type="number" min="1" placeholder="10" />
+                <div class="small-muted">Average handling time per token</div>
+
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button class="btn" id="createShopSubmit">Save shop</button>
+                    <button class="btn ghost" id="closeCreateShop">Close</button>
+                </div>
+                <p id="createShopMsg" class="notice"></p>
+            </div>
+
+            <!-- Take token panel -->
+            <div class="slide-panel hidden" id="takeTokenPanel" aria-hidden="true">
+                <h3>Take a token</h3>
+                <label>Filter category</label>
+                <select id="filterShopType">
+                    <option value="">All categories</option>
+                    <option>Healthcare (Clinic / Lab / Pharmacy)</option>
+                    <option>Food / Restaurant / Fast Food</option>
+                    <option>Salon / Barber / Beauty</option>
+                    <option>Bank / ATM</option>
+                    <option>Post Office / Courier</option>
+                    <option>Government Office</option>
+                    <option>Other</option>
+                </select>
+
+                <label>Select shop</label>
+                <select id="shopDropdown">
+                    <option value="">Choose a shop</option>
+                </select>
+
+                <div id="shopDetails" style="margin-top:10px;"></div>
+
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="btn" id="takeTokenSubmit">Take Token</button>
+                    <button class="btn ghost" id="closeTakeToken">Close</button>
+                </div>
+                <p id="takeTokenMsg" class="notice"></p>
+            </div>
+
+        </div>
     </div>
 
-    <!-- LOGIN -->
-    <div id="loginCard" class="card">
-        <h2 style="text-align:center;color:white;">Welcome Back 👋</h2>
-        <input id="loginMobile" type="text" placeholder="Mobile Number" required>
-        <input id="loginPassword" type="password" placeholder="Password" required>
-        <button onclick="login()">Login</button>
-        <p id="loginResult" class="result"></p>
-        <p class="switch-text" onclick="switchCard('signupCard')">Don't have an account? Sign Up</p>
-    </div>
+    <!-- Right (sidebar) -->
+    <div class="sidebar">
+        <div class="card" id="quickInfo">
+            <h3>Quick actions</h3>
+            <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn" id="openCreateFromSidebar">Create Shop</button>
+                <button class="btn ghost" id="openTakeFromSidebar">Take Token</button>
+            </div>
+            <p class="notice" style="margin-top:12px">Use the top-right menu for account actions and quick navigation.</p>
+        </div>
 
-    <!-- APP SECTION -->
-    <div id="appSection">
-        <h2 style="text-align:center;color:white;">🏪 Create Shop</h2>
-        <select id="shopType" required>
-            <option value="">Select Type</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Restaurant">Restaurant</option>
-            <option value="Salon">Salon / Barber</option>
-            <option value="Bank">Bank</option>
-            <option value="Post Office">Post Office</option>
-            <option value="Government Office">Government Office</option>
-            <option value="Other">Other</option>
-        </select>
-        <input id="shopName" type="text" placeholder="Shop Name" required>
-        <input id="shopAddress" type="text" placeholder="Address" required>
-        <label style="color:white;font-size:14px;">⏰ Close Time</label>
-        <input id="shopCloseTime" type="time" required>
-        <input id="timePerCustomer" type="number" placeholder="Minutes per Customer" required>
-        <button onclick="createShop()">Create Shop</button>
-        <p id="createShopResult" class="result"></p>
+        <div class="card">
+            <h3>Your Shops</h3>
+            <div id="sideShopsList"><p class="small-muted">No shops loaded. Login to see your shops.</p></div>
+        </div>
 
-        <hr>
-
-        <h2 style="text-align:center;color:white;">🎫 Take Token</h2>
-        <select id="filterShopType" onchange="filterByType()">
-            <option value="">Select Shop Type</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Restaurant">Restaurant</option>
-            <option value="Salon">Salon / Barber</option>
-            <option value="Bank">Bank</option>
-            <option value="Post Office">Post Office</option>
-            <option value="Government Office">Government Office</option>
-            <option value="Other">Other</option>
-        </select>
-        <select id="shopDropdown" onchange="showShopDetails()">
-            <option value="">Select Shop</option>
-        </select>
-        <div id="shopDetails" class="shop-card" style="display:none;"></div>
-        <button onclick="takeToken()">Take Token</button>
-        <p id="takeResult" class="result"></p>
-
-        <hr>
-
-        <h2 style="text-align:center;color:white;">🎟️ My Tokens</h2>
-        <button onclick="showMyTokens()">Show My Tokens</button>
-        <div id="myTokensResult"></div>
-
-        <hr>
-
-        <h2 style="text-align:center;color:white;">🏬 My Shops</h2>
-        <button onclick="showMyShops()">Show My Shops</button>
-        <div id="myShopsResult"></div>
-
-        <p class="logout" onclick="logout()">Logout</p>
+        <div class="card">
+            <h3>Your Tokens</h3>
+            <div id="sideTokensList"><p class="small-muted">No tokens loaded. Login to see your tokens.</p></div>
+        </div>
     </div>
 </div>
 
-<script>
-    let authToken = "";
-    let selectedShopId = "";
-    let allShops = [];
-
-    function switchCard(cardId) {
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-      document.getElementById(cardId).classList.add('active');
-    }
-
-    function signup() {
-      const data = {
-        name: document.getElementById("signupName").value,
-        mobile: document.getElementById("signupMobile").value,
-        password: document.getElementById("signupPassword").value
-      };
-      fetch("http://localhost:8080/Token/signup", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(d => {
-        const msg = document.getElementById("signupResult");
-        msg.innerText = d.message;
-        msg.className = "result " + (d.status === "success" ? "success" : "error");
-      });
-    }
-
-    function login() {
-      const data = {
-        mobile: document.getElementById("loginMobile").value,
-        password: document.getElementById("loginPassword").value
-      };
-      fetch("http://localhost:8080/Token/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(d => {
-        const msg = document.getElementById("loginResult");
-        if (d.status === "success") {
-          authToken = d.data;
-          document.querySelector(".card.active").style.display = "none";
-          document.getElementById("appSection").style.display = "block";
-          loadShops();
-        } else {
-          msg.innerText = d.message;
-          msg.className = "result error";
-        }
-      });
-    }
-
-    function logout() {
-      authToken = "";
-      document.getElementById("appSection").style.display = "none";
-      switchCard("loginCard");
-    }
-
-    function createShop() {
-      const data = {
-        shopType: document.getElementById("shopType").value,
-        shopName: document.getElementById("shopName").value,
-        address: document.getElementById("shopAddress").value,
-        closeTime: document.getElementById("shopCloseTime").value,
-        timePerCustomer: parseInt(document.getElementById("timePerCustomer").value)
-      };
-      fetch("http://localhost:8080/Token/createShop", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + authToken
-        },
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(d => {
-        const msg = document.getElementById("createShopResult");
-        msg.innerText = d.message;
-        msg.className = "result " + (d.status === "success" ? "success" : "error");
-        loadShops();
-      });
-    }
-
-    function loadShops() {
-      fetch("http://localhost:8080/Token/getAllShops", {
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => allShops = d.data || []);
-    }
-
-    function filterByType() {
-      const type = document.getElementById("filterShopType").value;
-      const dropdown = document.getElementById("shopDropdown");
-      dropdown.innerHTML = '<option value="">Select Shop</option>';
-      const filtered = type ? allShops.filter(s => s.shopType === type) : allShops;
-      filtered.forEach(shop => {
-        const opt = document.createElement("option");
-        opt.value = shop.id;
-        opt.text = `${shop.shopName} (${shop.shopType})`;
-        dropdown.appendChild(opt);
-      });
-    }
-
-    function showShopDetails() {
-      selectedShopId = document.getElementById("shopDropdown").value;
-      if (!selectedShopId) return;
-      fetch(`http://localhost:8080/Token/getShop/${selectedShopId}`, {
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => {
-        if (d.status === "success") {
-          const s = d.data;
-          const div = document.getElementById("shopDetails");
-          div.style.display = "block";
-          div.innerHTML = `
-            <div class="title-bar">
-              <h3>${s.shopName}</h3>
-              <span>🕒 Closes at: ${s.closeTime || "N/A"}</span>
+<!-- Slide menu -->
+<div class="slide-menu" id="slideMenu" aria-hidden="true">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;gap:10px;align-items:center">
+            <div class="avatar" id="menuAvatar">A</div>
+            <div>
+                <div id="menuName" style="font-weight:800">Guest</div>
+                <div class="small-muted" id="menuMobile">Not logged</div>
             </div>
-            <p>📍 ${s.address}</p>
-            <p>Type: ${s.shopType}</p>
-            <p>Current Token: ${s.currentToken}</p>
-            <p>Wait Time: ${s.estimatedWaitTime < 0 ? 0 : s.estimatedWaitTime} mins</p>
-          `;
+        </div>
+        <button class="btn ghost" id="closeMenu">Close</button>
+    </div>
+
+    <div style="margin-top:8px">
+        <div class="menu-item" id="menuMyShops">My Shops <span class="small-muted">→</span></div>
+        <div class="menu-item" id="menuMyTokens">My Tokens <span class="small-muted">→</span></div>
+        <div class="menu-item" id="menuLogout">Logout <span class="small-muted">⎋</span></div>
+    </div>
+
+    <hr style="margin-top:14px;margin-bottom:10px" />
+    <div class="notice">Server: <span id="serverUrl">http://localhost:8080</span></div>
+</div>
+
+<script>
+    /*
+      Frontend JS:
+      - wired to your backend endpoints under /Token/*
+      - stores token in localStorage under 'tm_jwt'
+      - friendly UI behavior & validation
+    */
+
+    const SERVER = (function(){ return 'http://localhost:8080/Token'; })();
+
+    // elements
+    const openMenuBtn = document.getElementById('openMenuBtn');
+    const slideMenu = document.getElementById('slideMenu');
+    const closeMenu = document.getElementById('closeMenu');
+    const menuName = document.getElementById('menuName');
+    const menuMobile = document.getElementById('menuMobile');
+    const menuAvatar = document.getElementById('menuAvatar');
+
+    const authPanel = document.getElementById('authPanel');
+    const signupForm = document.getElementById('signupForm');
+    const loginForm = document.getElementById('loginForm');
+    const signupBtn = document.getElementById('signupBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const gotoLogin = document.getElementById('gotoLogin');
+    const gotoSignup = document.getElementById('gotoSignup');
+
+    const btnCreateShop = document.getElementById('btnCreateShop');
+    const btnTakeToken = document.getElementById('btnTakeToken');
+
+    const createShopPanel = document.getElementById('createShopPanel');
+    const takeTokenPanel = document.getElementById('takeTokenPanel');
+
+    const openCreateFromSidebar = document.getElementById('openCreateFromSidebar');
+    const openTakeFromSidebar = document.getElementById('openTakeFromSidebar');
+
+    const createShopSubmit = document.getElementById('createShopSubmit');
+    const createShopMsg = document.getElementById('createShopMsg');
+    const closeCreateShop = document.getElementById('closeCreateShop');
+
+    const takeTokenSubmit = document.getElementById('takeTokenSubmit');
+    const takeTokenMsg = document.getElementById('takeTokenMsg');
+    const closeTakeToken = document.getElementById('closeTakeToken');
+
+    const shopDropdown = document.getElementById('shopDropdown');
+    const filterShopType = document.getElementById('filterShopType');
+    const shopDetails = document.getElementById('shopDetails');
+
+    const sideShopsList = document.getElementById('sideShopsList');
+    const sideTokensList = document.getElementById('sideTokensList');
+
+    const signupMsg = document.getElementById('signupMsg');
+    const loginMsg = document.getElementById('loginMsg');
+
+    let authToken = localStorage.getItem('tm_jwt') || '';
+    let me = { name: 'Guest', mobile: null };
+
+    // helper: set auth token & update UI
+    function setAuth(token, userMobile, userName){
+      if(token){
+        authToken = token;
+        localStorage.setItem('tm_jwt', token);
+        me.mobile = userMobile || me.mobile;
+        me.name = userName || me.name;
+        menuName.innerText = me.name || 'User';
+        menuMobile.innerText = me.mobile || '—';
+        menuAvatar.innerText = (me.name||'U').substr(0,1).toUpperCase();
+        document.getElementById('avatar').innerText = menuAvatar.innerText;
+        // hide auth forms
+        authPanel.classList.add('hidden');
+      } else {
+        localStorage.removeItem('tm_jwt');
+        authToken = '';
+        me = { name:'Guest', mobile:null };
+        menuName.innerText = 'Guest';
+        menuMobile.innerText = 'Not logged';
+        menuAvatar.innerText = 'G';
+        document.getElementById('avatar').innerText = 'G';
+        authPanel.classList.remove('hidden');
+      }
+    }
+
+    // show slide menu
+    openMenuBtn.addEventListener('click', ()=> slideMenu.classList.add('open'));
+    closeMenu.addEventListener('click', ()=> slideMenu.classList.remove('open'));
+
+    // menu item actions
+    document.getElementById('menuLogout').addEventListener('click', ()=>{
+      setAuth(null);
+      slideMenu.classList.remove('open');
+      showAuthForms();
+      clearUILists();
+    });
+    document.getElementById('menuMyShops').addEventListener('click', ()=>{
+      slideMenu.classList.remove('open');
+      openPanel(createShopPanel); // show shops via sidebar; user can press "Show my shops" in slide menu if desired
+      loadMyShops();
+    });
+    document.getElementById('menuMyTokens').addEventListener('click', ()=>{
+      slideMenu.classList.remove('open');
+      openPanel(takeTokenPanel);
+      loadMyTokens();
+    });
+
+    // auth toggles
+    gotoLogin.addEventListener('click', (e)=>{ e.preventDefault(); showLogin(); });
+    gotoSignup.addEventListener('click', (e)=>{ e.preventDefault(); showSignup(); });
+
+    function showSignup(){
+      signupForm.style.display = '';
+      loginForm.style.display = 'none';
+      document.getElementById('authTitle').innerText = 'Create a new account';
+    }
+    function showLogin(){
+      signupForm.style.display = 'none';
+      loginForm.style.display = '';
+      document.getElementById('authTitle').innerText = 'Welcome back — login';
+    }
+    function showAuthForms(){
+      authPanel.classList.remove('hidden');
+      showSignup();
+    }
+
+    // open / close panels
+    function openPanel(panel){
+      // hide others
+      [createShopPanel, takeTokenPanel].forEach(p=>{
+        if(p!==panel) p.classList.add('hidden');
+      });
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    function closePanel(panel){ panel.classList.add('hidden'); }
+
+    // main buttons
+    btnCreateShop.addEventListener('click', ()=> openPanel(createShopPanel));
+    btnTakeToken.addEventListener('click', ()=> { openPanel(takeTokenPanel); loadShopsForDropdown(); });
+
+    openCreateFromSidebar.addEventListener('click', ()=> { openPanel(createShopPanel); });
+    openTakeFromSidebar.addEventListener('click', ()=> { openPanel(takeTokenPanel); loadShopsForDropdown(); });
+
+    closeCreateShop.addEventListener('click', ()=> closePanel(createShopPanel));
+    closeTakeToken.addEventListener('click', ()=> closePanel(takeTokenPanel));
+
+    // signup / login handlers
+    signupBtn.addEventListener('click', async () => {
+      signupMsg.innerText = ''; signupMsg.className = 'notice';
+      const name = document.getElementById('signupName').value.trim();
+      const mobile = document.getElementById('signupMobile').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      if(!name || !mobile || !password){ signupMsg.innerText = 'Please fill all fields'; signupMsg.classList.add('error'); return; }
+      try {
+        const res = await fetch(`${SERVER}/signup`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ name, mobile, password })
+        });
+        const data = await res.json();
+        if(data.status==='success'){
+          signupMsg.innerText = 'Account created — please login';
+          signupMsg.classList.add('success');
+          // prefill login
+          document.getElementById('loginMobile').value = mobile;
+          showLogin();
+        } else {
+          signupMsg.innerText = data.message || 'Failed';
+          signupMsg.classList.add('error');
         }
-      });
+      } catch(e){
+        signupMsg.innerText = 'Network error';
+        signupMsg.classList.add('error');
+      }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      loginMsg.innerText = ''; loginMsg.className = 'notice';
+      const mobile = document.getElementById('loginMobile').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      if(!mobile || !password){ loginMsg.innerText='Please fill credentials'; loginMsg.classList.add('error'); return; }
+      try {
+        const res = await fetch(`${SERVER}/login`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ mobile, password })
+        });
+        const data = await res.json();
+        if(data.status==='success'){
+          // data.data contains token
+          setAuth(data.data, mobile, mobile);
+          loginMsg.innerText = 'Login successful';
+          loginMsg.classList.add('success');
+          // refresh UI lists
+          await loadMyShops();
+          await loadMyTokens();
+        } else {
+          loginMsg.innerText = data.message || 'Invalid credentials';
+          loginMsg.classList.add('error');
+        }
+      } catch(e){
+        loginMsg.innerText = 'Network error';
+        loginMsg.classList.add('error');
+      }
+    });
+
+    // create shop submit
+    createShopSubmit.addEventListener('click', async () => {
+      createShopMsg.innerText = ''; createShopMsg.className = 'notice';
+      if(!authToken){ createShopMsg.innerText = 'Login required'; createShopMsg.classList.add('error'); return; }
+
+     const shopType = document.getElementById('shopType').value;
+const shopName = document.getElementById('shopName').value.trim();
+const address = document.getElementById('shopAddress').value.trim();
+const city = document.getElementById('shopCity').value.trim();
+const openTime = document.getElementById('shopOpenTime').value;
+const closeTime = document.getElementById('shopCloseTime').value;
+const timePerCustomer = parseInt(document.getElementById('timePerCustomer').value || '0', 10);
+
+
+      if(!shopType || !shopName || !address || !timePerCustomer){ createShopMsg.innerText='Please fill required fields'; createShopMsg.classList.add('error'); return; }
+
+      try {
+        const payload = {
+  shopType,
+  shopName,
+  address,
+  city,
+  openTime,
+  closeTime,
+  timePerCustomer
+};
+
+        const res = await fetch(`${SERVER}/createShop`, {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.status==='success'){
+          createShopMsg.innerText = 'Shop created';
+          createShopMsg.classList.add('success');
+          // refresh lists
+          await loadShopsForDropdown();
+          await loadMyShops();
+          // auto close after short delay
+          setTimeout(()=> closePanel(createShopPanel), 900);
+        } else {
+          createShopMsg.innerText = data.message || 'Error creating';
+          createShopMsg.classList.add('error');
+        }
+      } catch(e){
+        createShopMsg.innerText = 'Network error';
+        createShopMsg.classList.add('error');
+      }
+    });
+
+    // load shops for dropdown (filterable)
+    async function loadShopsForDropdown(){
+      shopDropdown.innerHTML = '<option value="">Loading shops...</option>';
+      try {
+        const res = await fetch(`${SERVER}/getAllShops`, {
+          headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {}
+        });
+        const data = await res.json();
+        const shops = Array.isArray(data.data) ? data.data : [];
+        // keep full list in memory
+        window._allShops = shops;
+        populateShopDropdown(shops);
+      } catch(e){
+        shopDropdown.innerHTML = '<option value="">Failed to load</option>';
+      }
     }
 
-    function takeToken() {
-      if (!selectedShopId) return alert("Select a shop first!");
-      fetch(`http://localhost:8080/Token/takeToken/${selectedShopId}`, {
-        method: "POST",
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => {
-        const msg = document.getElementById("takeResult");
-        msg.innerText = d.status === "success"
-          ? `✅ Token: ${d.data.tokenNo} | Wait: ${d.data.estimatedWaitTime} mins`
-          : `❌ ${d.message}`;
-        msg.className = "result " + (d.status === "success" ? "success" : "error");
-        showShopDetails();
+    // populate dropdown
+    function populateShopDropdown(shops){
+      shopDropdown.innerHTML = '<option value="">Choose a shop</option>';
+      shops.forEach(s=>{
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.innerText = `${s.shopName} — ${s.shopType} (${s.address})`;
+        opt.dataset.closeTime = s.closeTime || '';
+        opt.dataset.timePerCustomer = s.timePerCustomer || '';
+        shopDropdown.appendChild(opt);
       });
+      showShopDetails(); // clear details
     }
 
-    function showMyTokens() {
-      fetch("http://localhost:8080/Token/showMyTokens", {
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => {
-        const c = document.getElementById("myTokensResult");
-        c.innerHTML = "";
-        if (d.status === "success" && d.data.length) {
-          d.data.forEach(t => {
-            const div = document.createElement("div");
-            div.className = "shop-card";
-            div.innerHTML = `
-              <h3>${t.shopName} (${t.shopType})</h3>
-              <p>📍 ${t.address}</p>
-              <p>🎟️ Token No: ${t.yourTokenNo}</p>
-              <p>⏳ Wait: ${t.estimatedWaitTime} mins</p>
-              <p>Status: ${t.status}</p>
-            `;
-            c.appendChild(div);
-          });
-        } else c.innerHTML = "<p>No tokens found</p>";
-      });
+    // when filter changes, filter local list
+    filterShopType.addEventListener('change', ()=>{
+      const category = filterShopType.value;
+      const shops = (window._allShops || []);
+      const filtered = category ? shops.filter(s => s.shopType === category) : shops;
+      populateShopDropdown(filtered);
+    });
+
+    // show selected shop details
+    shopDropdown.addEventListener('change', showShopDetails);
+    function showShopDetails(){
+      const id = shopDropdown.value;
+      if(!id){ shopDetails.innerHTML = '<div class="small-muted">Choose shop to see details</div>'; return; }
+      // ideally request getShop for latest data
+      fetch(`${SERVER}/getShop/${id}`, { headers: authToken ? { 'Authorization': 'Bearer '+authToken } : {} })
+        .then(res => res.json())
+        .then(data=>{
+          if(data.status!=='success'){ shopDetails.innerHTML = `<div class="small-muted">Could not load shop</div>`; return; }
+          const s = data.data;
+          const closeTime = s.closeTime || 'N/A';
+          const pending = Math.max(0, (s.totalToken || 0) - (s.currentToken || 1));
+          const wait = Math.max(0, s.estimatedWaitTime || 0);
+          const closed = (s.closeTime && isAfterNow(s.closeTime));
+          shopDetails.innerHTML = `
+            <div>
+              <strong>${escapeHtml(s.shopName)}</strong> <div class="small-muted">${escapeHtml(s.shopType)}</div>
+              <div class="small-muted" style="margin-top:6px">${escapeHtml(s.address)}</div>
+            </div>
+            <div style="margin-top:8px">
+              <span class="small-muted">Closes at: </span><strong>${closeTime}</strong>
+              &nbsp; • &nbsp;
+              <span class="small-muted">Current:</span> <strong>${s.currentToken}</strong>
+              &nbsp; • &nbsp;
+              <span class="small-muted">Pending:</span> <strong>${pending}</strong>
+            </div>
+            <div style="margin-top:8px">
+              ${ closed ? '<span class="status-pill status-expired">Closed</span>' : '<span class="status-pill status-active">Open</span>' }
+              &nbsp; <span class="small-muted">Estimated wait: ${wait} mins</span>
+            </div>`;
+        }).catch(()=> {
+          shopDetails.innerHTML = `<div class="small-muted">Failed to load shop details</div>`;
+        });
     }
 
-    function showMyShops() {
-      fetch("http://localhost:8080/Token/myShops", {
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => {
-        const c = document.getElementById("myShopsResult");
-        c.innerHTML = "";
-        if (d.status === "success" && d.data.length) {
-          d.data.forEach(s => {
-            const div = document.createElement("div");
-            div.className = "shop-card";
-            div.innerHTML = `
-              <h3>${s.shopName}</h3>
-              <p>📍 ${s.address}</p>
-              <p>🕒 Closes at: ${s.closeTime || "N/A"}</p>
-              <p>🎟️ Current Token: ${s.currentToken}</p>
-              <p>⏳ ${s.timePerCustomer} mins per customer</p>
-              <button onclick="completeToken(${s.id})">✅ Complete Token ${s.currentToken}</button>
-              <p id="result-${s.id}" class="result"></p>
-            `;
-            c.appendChild(div);
-          });
-        } else c.innerHTML = "<p>No shops found</p>";
-      });
+    // take token
+    takeTokenSubmit.addEventListener('click', async ()=>{
+      takeTokenMsg.innerText = ''; takeTokenMsg.className='notice';
+      if(!authToken){ takeTokenMsg.innerText='Login required'; takeTokenMsg.classList.add('error'); return; }
+      const id = shopDropdown.value;
+      if(!id){ takeTokenMsg.innerText='Select a shop first'; takeTokenMsg.classList.add('error'); return; }
+
+      // optional frontend close-time check
+      const selectedOpt = shopDropdown.selectedOptions[0];
+      const closeTime = selectedOpt?.dataset?.closeTime;
+      if(closeTime && isAfterNow(closeTime)){ takeTokenMsg.innerText='Shop is closed (frontend)'; takeTokenMsg.classList.add('error'); return; }
+
+      try {
+        const res = await fetch(`${SERVER}/takeToken/${id}`, {
+          method:'POST',
+          headers:{
+            'Authorization':'Bearer ' + authToken
+          }
+        });
+        const data = await res.json();
+        if(data.status==='success'){
+          takeTokenMsg.innerText = `Token ${data.data.tokenNo} issued — wait ${data.data.estimatedWaitTime} mins`;
+          takeTokenMsg.classList.add('success');
+          // refresh tokens and shops
+          await loadMyTokens();
+          await loadShopsForDropdown();
+          await loadMyShops();
+        } else {
+          takeTokenMsg.innerText = data.message || 'Could not take token';
+          takeTokenMsg.classList.add('error');
+        }
+      } catch(e){
+        takeTokenMsg.innerText = 'Network error';
+        takeTokenMsg.classList.add('error');
+      }
+    });
+
+ // load my shops (sidebar + menu)
+async function loadMyShops() {
+  if (!authToken) {
+    sideShopsList.innerHTML = '<p class="small-muted">Login to see your shops</p>';
+    return;
+  }
+
+  sideShopsList.innerHTML = '<p class="small-muted">Loading…</p>';
+
+  try {
+    const res = await fetch(`${SERVER}/myShops`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const data = await res.json();
+
+    if (data.status !== 'success') {
+      sideShopsList.innerHTML = `<p class="small-muted">${data.message || 'No shops'}</p>`;
+      return;
     }
 
-    function completeToken(id) {
-      fetch(`http://localhost:8080/Token/completeToken/${id}`, {
-        method: "POST",
-        headers: {"Authorization": "Bearer " + authToken}
-      })
-      .then(res => res.json())
-      .then(d => {
-        const msg = document.getElementById(`result-${id}`);
-        msg.innerText = d.message;
-        msg.className = "result " + (d.status === "success" ? "success" : "error");
-        showMyShops();
-        showShopDetails();
-        showMyTokens();
-      });
+    const arr = data.data || [];
+    if (!arr.length) {
+      sideShopsList.innerHTML = '<p class="small-muted">No shops yet</p>';
+      return;
     }
+
+    sideShopsList.innerHTML = '';
+    arr.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'list-item';
+      div.style.marginBottom = '12px';
+      div.innerHTML = `
+        <div style="border:1px solid #ddd;border-radius:10px;padding:10px;background:#fafafa;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800;font-size:16px;color:#333;">${escapeHtml(s.shopName)}</div>
+              <div class="small-muted">${escapeHtml(s.shopType)}</div>
+              <div class="small-muted">📍 ${escapeHtml(s.address || 'N/A')}</div>
+             <div class="small-muted">🏙️ City: ${escapeHtml(s.city || s.City || 'N/A')}</div>
+<div class="small-muted">🕒 Open: ${escapeHtml(s.openTime || s.opentime || s['open_time'] || 'N/A')} – Close: ${escapeHtml(s.closeTime || s.closetime || s['close_time'] || 'N/A')}</div>
+
+
+            </div>
+            <div style="text-align:right;margin-top:4px;">
+              <div class="small-muted">Current Token</div>
+              <div style="font-weight:800;font-size:18px;">${s.currentToken ?? 0}</div>
+              ${s.totalTokens !== undefined ? `<div class="small-muted">Total Tokens: ${s.totalTokens}</div>` : ''}
+            </div>
+          </div>
+          <div style="margin-top:10px;text-align:right;">
+            <button class="btn btn-success btn-sm" onclick="completeToken(${s.id})">✅ Complete Token</button>
+          </div>
+        </div>
+      `;
+      sideShopsList.appendChild(div);
+    });
+  } catch (e) {
+    sideShopsList.innerHTML = '<p class="small-muted">Failed to load</p>';
+  }
+}
+
+
+async function completeToken(shopId) {
+  try {
+    const res = await fetch(`${SERVER}/completeToken/${shopId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + authToken,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      alert('✅ Token marked as completed!');
+      loadMyShops();  // refresh shop list
+      loadMyTokens(); // refresh token list
+    } else {
+      alert('⚠️ ' + (data.message || 'Something went wrong'));
+    }
+  } catch (err) {
+    alert('⚠️ Failed to complete token');
+  }
+}
+
+    // load my tokens
+    async function loadMyTokens(){
+      if(!authToken){ sideTokensList.innerHTML = '<p class="small-muted">Login to see your tokens</p>'; return; }
+      sideTokensList.innerHTML = '<p class="small-muted">Loading…</p>';
+      try {
+        const res = await fetch(`${SERVER}/showMyTokens`, { headers: {'Authorization':'Bearer '+authToken} });
+        const data = await res.json();
+        if(data.status!=='success'){ sideTokensList.innerHTML = `<p class="small-muted">${data.message || 'No tokens'}</p>`; return; }
+        const arr = data.data || [];
+        if(!arr.length){ sideTokensList.innerHTML = '<p class="small-muted">No active tokens</p>'; return; }
+        sideTokensList.innerHTML = '';
+        arr.forEach(t=>{
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          const statusClass = (t.status==='expired') ? 'status-expired' : 'status-active';
+          div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:800">${escapeHtml(t.shopName)}</div>
+              <div class="small-muted">${escapeHtml(t.shopType)} • ${escapeHtml(t.address)}</div>
+              <div class="small-muted">Close: ${t.closeTime || 'N/A'}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="${statusClass} status-pill">${t.status || 'active'}</div>
+              <div style="font-weight:800;margin-top:6px">#${t.yourTokenNo}</div>
+              <div class="small-muted">${t.estimatedWaitTime} mins</div>
+            </div>
+          </div>`;
+          sideTokensList.appendChild(div);
+        });
+      } catch(e){
+        sideTokensList.innerHTML = '<p class="small-muted">Failed to load tokens</p>';
+      }
+    }
+
+    function clearUILists(){
+      sideShopsList.innerHTML = '<p class="small-muted">Logged out</p>';
+      sideTokensList.innerHTML = '<p class="small-muted">Logged out</p>';
+      shopDropdown.innerHTML = '<option value="">Login to load shops</option>';
+    }
+
+    // small helper: is given HH:mm after now
+    function isAfterNow(hhmm){
+      if(!hhmm) return false;
+      try{
+        const now = new Date();
+        const [hh,mm] = hhmm.split(':').map(x=>parseInt(x,10));
+        const cmp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh||0, mm||0,0);
+        return now > cmp;
+      }catch(e){ return false; }
+    }
+
+    // escape html
+    function escapeHtml(s){ if(!s && s!=='0') return ''; return String(s).replace(/[&<>"'`]/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;'}[m])); }
+
+    // initial load
+    (function init(){
+      // if token in storage, assume logged in
+      if(authToken){
+        setAuth(authToken);
+        loadMyShops();
+        loadMyTokens();
+        loadShopsForDropdown();
+      } else {
+        showAuthForms();
+        clearUILists();
+      }
+    })();
 </script>
 </body>
 </html>
