@@ -19,10 +19,9 @@ public class DailyMaintenanceService {
     private ShopRepository shopRepo;
 
     @Autowired
-    private ShopTokenRepository shopTokenRepo; // ✅ Correct repository
+    private ShopTokenRepository shopTokenRepo;
 
-    // ✅ Run daily at midnight
-    @Scheduled(cron = "0 0 0 * * ?") // 12:00 AM
+    @Scheduled(cron = "0 0 0 * * ?")
     public void resetAndCleanTokens() {
         resetShops();
         cleanExpiredTokens();
@@ -35,11 +34,11 @@ public class DailyMaintenanceService {
             shop.setTotalToken(0);
         }
         shopRepo.saveAll(shops);
-        System.out.println("♻️ All shops reset successfully at midnight");
+        System.out.println("All shops reset successfully at midnight");
     }
 
     private void cleanExpiredTokens() {
-        List<ShopToken> allTokens = shopTokenRepo.findAll(); // ✅ fixed
+        List<ShopToken> allTokens = shopTokenRepo.findAll();
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         int deletedCount = 0;
@@ -54,6 +53,6 @@ public class DailyMaintenanceService {
                 }
             }
         }
-        System.out.println("🧹 Deleted " + deletedCount + " expired tokens.");
+        System.out.println("Deleted " + deletedCount + " expired tokens.");
     }
 }

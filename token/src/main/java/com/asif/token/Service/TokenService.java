@@ -101,12 +101,12 @@ public class TokenService {
             shop.setCurrentToken(1);
         }
 
-        // ✅ Pehle increment karo totalToken
+
         int newTokenNo = shop.getTotalToken() + 1;
         shop.setTotalToken(newTokenNo);
         shopRepo.save(shop);
 
-        // ✅ Ab wait time calculate karo
+
         int currentToken = shop.getCurrentToken();
         if (currentToken < 1) currentToken = 1;
 
@@ -115,7 +115,7 @@ public class TokenService {
             waitTime = (newTokenNo - currentToken - 1) * shop.getTimePerCustomer();
         }
 
-        // ✅ Save correct wait time
+
         ShopToken token = new ShopToken();
         token.setUser(user);
         token.setShop(shop);
@@ -267,37 +267,37 @@ public class TokenService {
         return new DtoApiResponse("success", "Shop found", shopData);
     }
     public DtoApiResponse completeToken(String mobile, Long shopId) {
-        // 🔹 Step 1: Validate owner
+
         Users owner = repo.findByMobile(mobile).orElse(null);
         if (owner == null) {
             return new DtoApiResponse("error", "Invalid user", null);
         }
 
-        // 🔹 Step 2: Find shop
+
         Shops shop = shopRepo.findById(shopId).orElse(null);
         if (shop == null) {
             return new DtoApiResponse("error", "Shop not found", null);
         }
 
-        // 🔹 Step 3: Ensure ownership
+
         if (!shop.getOwner().getId().equals(owner.getId())) {
             return new DtoApiResponse("error", "You are not the owner of this shop", null);
         }
 
-        // 🔹 Step 4: Check if there are pending tokens
+
         if (shop.getCurrentToken() >= shop.getTotalToken()) {
             return new DtoApiResponse("error", "No pending tokens to complete", null);
         }
 
-        // 🔹 Step 5: Move to next token
+
         shop.setCurrentToken(shop.getCurrentToken() + 1);
         shopRepo.save(shop);
 
-        // 🔹 Step 6: Fetch all shop tokens safely using shopId
-        List<ShopToken> tokens = shopTokenRepo.findByShop_Id(shop.getId());
-        System.out.println("🟢 Tokens found for shop " + shop.getShopName() + ": " + tokens.size());
 
-        // 🔹 Step 7: Update estimated wait time for each pending token
+        List<ShopToken> tokens = shopTokenRepo.findByShop_Id(shop.getId());
+        System.out.println("Tokens found for shop " + shop.getShopName() + ": " + tokens.size());
+
+
         for (ShopToken token : tokens) {
             if (token.getTokenNo() >= shop.getCurrentToken()) {
                 int newWaitTime = (token.getTokenNo() - shop.getCurrentToken()) * shop.getTimePerCustomer();
@@ -305,9 +305,8 @@ public class TokenService {
             }
         }
 
-        shopTokenRepo.saveAll(tokens); // ✅ Batch save (faster)
+        shopTokenRepo.saveAll(tokens);
 
-        // 🔹 Step 8: Prepare response data
         int pending = shop.getTotalToken() - shop.getCurrentToken();
         int waitTime = Math.max(0, pending * shop.getTimePerCustomer());
 
@@ -321,7 +320,7 @@ public class TokenService {
         data.put("openTime", shop.getOpenTime());
         data.put("city", shop.getCity());
 
-        System.out.println("✅ Token completed for shop: " + shop.getShopName() +
+        System.out.println("Token completed for shop: " + shop.getShopName() +
                 ", CurrentToken=" + shop.getCurrentToken() +
                 ", Pending=" + pending);
 
