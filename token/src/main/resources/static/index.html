@@ -655,19 +655,25 @@ const timePerCustomer = parseInt(document.getElementById('timePerCustomer').valu
       }
     }
 
-    // populate dropdown
-    function populateShopDropdown(shops){
-      shopDropdown.innerHTML = '<option value="">Choose a shop</option>';
-      shops.forEach(s=>{
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.innerText = `${s.shopName} — ${s.shopType} (${s.address})`;
-        opt.dataset.closeTime = s.closeTime || '';
-        opt.dataset.timePerCustomer = s.timePerCustomer || '';
-        shopDropdown.appendChild(opt);
-      });
-      showShopDetails(); // clear details
-    }
+   function populateShopDropdown(shops) {
+  shopDropdown.innerHTML = '<option value="">Choose a shop</option>';
+
+  shops.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+
+    // 👇 Shop name, type aur city show hoga
+    opt.innerText = `${s.shopName} — ${s.shopType} (${s.city || 'Unknown City'})`;
+
+    opt.dataset.closeTime = s.closeTime || '';
+    opt.dataset.timePerCustomer = s.timePerCustomer || '';
+    opt.dataset.city = s.city || ''; // optional: agar future use karna ho
+    shopDropdown.appendChild(opt);
+  });
+
+  showShopDetails(); // clear details
+}
+
 
     // when filter changes, filter local list
     filterShopType.addEventListener('change', ()=>{
@@ -678,40 +684,58 @@ const timePerCustomer = parseInt(document.getElementById('timePerCustomer').valu
     });
 
     // show selected shop details
-    shopDropdown.addEventListener('change', showShopDetails);
-    function showShopDetails(){
-      const id = shopDropdown.value;
-      if(!id){ shopDetails.innerHTML = '<div class="small-muted">Choose shop to see details</div>'; return; }
-      // ideally request getShop for latest data
-      fetch(`${SERVER}/getShop/${id}`, { headers: authToken ? { 'Authorization': 'Bearer '+authToken } : {} })
-        .then(res => res.json())
-        .then(data=>{
-          if(data.status!=='success'){ shopDetails.innerHTML = `<div class="small-muted">Could not load shop</div>`; return; }
-          const s = data.data;
-          const closeTime = s.closeTime || 'N/A';
-          const pending = Math.max(0, (s.totalToken || 0) - (s.currentToken || 1));
-          const wait = Math.max(0, s.estimatedWaitTime || 0);
-          const closed = (s.closeTime && isAfterNow(s.closeTime));
-          shopDetails.innerHTML = `
-            <div>
-              <strong>${escapeHtml(s.shopName)}</strong> <div class="small-muted">${escapeHtml(s.shopType)}</div>
-              <div class="small-muted" style="margin-top:6px">${escapeHtml(s.address)}</div>
-            </div>
-            <div style="margin-top:8px">
-              <span class="small-muted">Closes at: </span><strong>${closeTime}</strong>
-              &nbsp; • &nbsp;
-              <span class="small-muted">Current:</span> <strong>${s.currentToken}</strong>
-              &nbsp; • &nbsp;
-              <span class="small-muted">Pending:</span> <strong>${pending}</strong>
-            </div>
-            <div style="margin-top:8px">
-              ${ closed ? '<span class="status-pill status-expired">Closed</span>' : '<span class="status-pill status-active">Open</span>' }
-              &nbsp; <span class="small-muted">Estimated wait: ${wait} mins</span>
-            </div>`;
-        }).catch(()=> {
-          shopDetails.innerHTML = `<div class="small-muted">Failed to load shop details</div>`;
-        });
+shopDropdown.addEventListener('change', showShopDetails);
+function showShopDetails(){
+  const id = shopDropdown.value;
+  if(!id){
+    shopDetails.innerHTML = '<div class="small-muted">Choose shop to see details</div>';
+    return;
+  }
+
+  // ideally request getShop for latest data
+  fetch(`${SERVER}/getShop/${id}`, {
+    headers: authToken ? { 'Authorization': 'Bearer '+authToken } : {}
+  })
+  .then(res => res.json())
+  .then(data=>{
+    if(data.status!=='success'){
+      shopDetails.innerHTML = `<div class="small-muted">Could not load shop</div>`;
+      return;
     }
+
+    const s = data.data;
+    const closeTime = s.closeTime || 'N/A';
+    const pending = Math.max(0, (s.totalToken || 0) - (s.currentToken || 1));
+    const wait = Math.max(0, s.estimatedWaitTime || 0);
+    const closed = (s.closeTime && isAfterNow(s.closeTime));
+
+    shopDetails.innerHTML = `
+      <div>
+        <strong>${escapeHtml(s.shopName)}</strong>
+        <div class="small-muted">${escapeHtml(s.shopType)}</div>
+        <div class="small-muted" style="margin-top:6px">
+          ${escapeHtml(s.address)}, <strong>${escapeHtml(s.city || 'N/A')}</strong>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <span class="small-muted">Closes at:</span> <strong>${closeTime}</strong>
+        &nbsp; • &nbsp;
+        <span class="small-muted">Current:</span> <strong>${s.currentToken}</strong>
+        &nbsp; • &nbsp;
+        <span class="small-muted">Pending:</span> <strong>${pending}</strong>
+      </div>
+      <div style="margin-top:8px">
+        ${ closed
+            ? '<span class="status-pill status-expired">Closed</span>'
+            : '<span class="status-pill status-active">Open</span>'
+        }
+        &nbsp; <span class="small-muted">Estimated wait: ${wait} mins</span>
+      </div>`;
+  })
+  .catch(()=> {
+    shopDetails.innerHTML = `<div class="small-muted">Failed to load shop details</div>`;
+  });
+}
 
     // take token
     takeTokenSubmit.addEventListener('click', async ()=>{

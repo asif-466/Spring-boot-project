@@ -267,32 +267,49 @@ public class TokenService {
         return new DtoApiResponse("success", "Shop found", shopData);
     }
     public DtoApiResponse completeToken(String mobile, Long shopId) {
+        // 🔹 Step 1: Validate owner
         Users owner = repo.findByMobile(mobile).orElse(null);
         if (owner == null) {
             return new DtoApiResponse("error", "Invalid user", null);
         }
 
+        // 🔹 Step 2: Find shop
         Shops shop = shopRepo.findById(shopId).orElse(null);
         if (shop == null) {
             return new DtoApiResponse("error", "Shop not found", null);
         }
 
+        // 🔹 Step 3: Ensure ownership
         if (!shop.getOwner().getId().equals(owner.getId())) {
             return new DtoApiResponse("error", "You are not the owner of this shop", null);
         }
 
-
-        if (shop.getCurrentToken() > shop.getTotalToken()) {
+        // 🔹 Step 4: Check if there are pending tokens
+        if (shop.getCurrentToken() >= shop.getTotalToken()) {
             return new DtoApiResponse("error", "No pending tokens to complete", null);
         }
 
-
+        // 🔹 Step 5: Move to next token
         shop.setCurrentToken(shop.getCurrentToken() + 1);
         shopRepo.save(shop);
 
+        // 🔹 Step 6: Fetch all shop tokens safely using shopId
+        List<ShopToken> tokens = shopTokenRepo.findByShop_Id(shop.getId());
+        System.out.println("🟢 Tokens found for shop " + shop.getShopName() + ": " + tokens.size());
+
+        // 🔹 Step 7: Update estimated wait time for each pending token
+        for (ShopToken token : tokens) {
+            if (token.getTokenNo() >= shop.getCurrentToken()) {
+                int newWaitTime = (token.getTokenNo() - shop.getCurrentToken()) * shop.getTimePerCustomer();
+                token.setEstimatedWaitTime(Math.max(0, newWaitTime));
+            }
+        }
+
+        shopTokenRepo.saveAll(tokens); // ✅ Batch save (faster)
+
+        // 🔹 Step 8: Prepare response data
         int pending = shop.getTotalToken() - shop.getCurrentToken();
-        int waitTime = pending * shop.getTimePerCustomer();
-        if (waitTime < 0) waitTime = 0;
+        int waitTime = Math.max(0, pending * shop.getTimePerCustomer());
 
         Map<String, Object> data = new HashMap<>();
         data.put("shopName", shop.getShopName());
@@ -300,11 +317,15 @@ public class TokenService {
         data.put("nextTokenToComplete", shop.getCurrentToken());
         data.put("pendingTokens", pending);
         data.put("estimatedWaitTime", waitTime);
-        data.put("closeTime",shop.getCloseTime());
-        data.put("openTime",shop.getOpenTime());
-        data.put("city",shop.getCity());
+        data.put("closeTime", shop.getCloseTime());
+        data.put("openTime", shop.getOpenTime());
+        data.put("city", shop.getCity());
 
-        return new DtoApiResponse("success", "Token marked as completed", data);
+        System.out.println("✅ Token completed for shop: " + shop.getShopName() +
+                ", CurrentToken=" + shop.getCurrentToken() +
+                ", Pending=" + pending);
+
+        return new DtoApiResponse("success", "Token marked as completed and wait times updated", data);
     }
 
 }

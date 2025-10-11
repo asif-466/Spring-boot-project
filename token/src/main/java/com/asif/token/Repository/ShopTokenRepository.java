@@ -12,5 +12,5 @@ public interface ShopTokenRepository extends JpaRepository<ShopToken,Long> {
 
     Optional<ShopToken> findByUserAndShop(Users user, Shops shop);
     List<ShopToken> findByUser(Users user);
-    List<ShopToken> findByShop(Shops shop);
+    List<ShopToken> findByShop_Id(Long shopId);
 }
